@@ -7,93 +7,134 @@
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script crossorigin src="https://unpkg.com/lucide@latest"></script>
+    <script crossorigin="anonymous" src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin="anonymous" src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin="anonymous" src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin="anonymous" src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         .lucide { vertical-align: middle; display: inline-block; }
-        /* Loading spinner for the initial load */
-        #loading { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; font-family: sans-serif; color: #666; }
+        /* Loading Screen Styles */
+        #loading-screen { position: fixed; inset: 0; background: #f8fafc; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; transition: opacity 0.5s; }
+        #loading-text { color: #475569; margin-bottom: 20px; font-weight: 500; }
+        #reset-btn { padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div id="loading">Loading Jazz Practice...</div>
+    <div id="root"></div>
+
+    <div id="loading-screen">
+        <div id="loading-text">Loading Jazz Practice...</div>
+        <button id="reset-btn" onclick="hardReset()">Fix App (Factory Reset)</button>
+        <div id="error-log" style="color:red; font-size:12px; margin-top:20px; max-width:80%; text-align:center;"></div>
     </div>
 
+    <script>
+        // Emergency Reset Function
+        function hardReset() {
+            if(confirm("This will fix the white screen issue by clearing the cache. Your saved presets might be reset. Continue?")) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    for(let reg of regs) reg.unregister();
+                    caches.keys().then(names => {
+                        Promise.all(names.map(name => caches.delete(name))).then(() => {
+                            window.location.reload();
+                        });
+                    });
+                });
+            }
+        }
+
+        // Show reset button if it takes too long (5 seconds)
+        setTimeout(() => {
+            const screen = document.getElementById('loading-screen');
+            if(screen) {
+                document.getElementById('loading-text').innerText = "Taking too long?";
+                document.getElementById('reset-btn').style.display = "block";
+            }
+        }, 5000);
+    </script>
+
     <script type="text/babel">
+        // Hide loading screen once React starts
+        setTimeout(() => {
+            const screen = document.getElementById('loading-screen');
+            if(screen) {
+                screen.style.opacity = '0';
+                setTimeout(() => screen.remove(), 500);
+            }
+        }, 500);
+
         const { useState, useEffect, useRef } = React;
 
-        const Icon = ({ name, size = 16, className = "" }) => {
+        const Icon = ({ name, size = 18, className = "" }) => {
             const iconRef = useRef(null);
             useEffect(() => { if (iconRef.current) lucide.createIcons(); }, [name]);
             return <i ref={iconRef} data-lucide={name} style={{width: size, height: size}} className={className}></i>;
         };
 
         const THEME_COLORS = {
-            slate: { bg: 'from-slate-50 via-slate-100 to-slate-50', primary: 'bg-slate-600', hover: 'hover:bg-slate-700', name: 'Slate' },
-            stone: { bg: 'from-stone-50 via-stone-100 to-stone-50', primary: 'bg-stone-600', hover: 'hover:bg-stone-700', name: 'Stone' },
-            emerald: { bg: 'from-emerald-50 via-emerald-100 to-emerald-50', primary: 'bg-emerald-600', hover: 'hover:bg-emerald-700', name: 'Emerald' },
-            teal: { bg: 'from-teal-50 via-teal-100 to-teal-50', primary: 'bg-teal-600', hover: 'hover:bg-teal-700', name: 'Teal' },
-            sky: { bg: 'from-sky-50 via-sky-100 to-sky-50', primary: 'bg-sky-600', hover: 'hover:bg-sky-700', name: 'Sky' },
-            violet: { bg: 'from-violet-50 via-violet-100 to-violet-50', primary: 'bg-violet-600', hover: 'hover:bg-violet-700', name: 'Violet' },
-            rose: { bg: 'from-rose-50 via-rose-100 to-rose-50', primary: 'bg-rose-600', hover: 'hover:bg-rose-700', name: 'Rose' },
-            amber: { bg: 'from-amber-50 via-amber-100 to-amber-50', primary: 'bg-amber-600', hover: 'hover:bg-amber-700', name: 'Amber' },
-            olive: { bg: 'from-green-50 via-green-100 to-green-50', primary: 'bg-green-700', hover: 'hover:bg-green-800', name: 'Olive' },
-            indigo: { bg: 'from-indigo-50 via-indigo-100 to-indigo-50', primary: 'bg-indigo-600', hover: 'hover:bg-indigo-700', name: 'Indigo' }
+            slate: { bg: 'from-slate-50 via-slate-100 to-slate-50', primary: 'bg-slate-600', name: 'Slate' },
+            stone: { bg: 'from-stone-50 via-stone-100 to-stone-50', primary: 'bg-stone-600', name: 'Stone' },
+            emerald: { bg: 'from-emerald-50 via-emerald-100 to-emerald-50', primary: 'bg-emerald-600', name: 'Emerald' },
+            sky: { bg: 'from-sky-50 via-sky-100 to-sky-50', primary: 'bg-sky-600', name: 'Sky' },
+            rose: { bg: 'from-rose-50 via-rose-100 to-rose-50', primary: 'bg-rose-600', name: 'Rose' },
+            amber: { bg: 'from-amber-50 via-amber-100 to-amber-50', primary: 'bg-amber-600', name: 'Amber' }
         };
 
         const PracticeSection = ({ sectionKey, section, isFullScreen, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing }) => (
-            <div className={`bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm transition-all duration-200 ${isFlashing ? 'ring-2 ring-blue-500' : ''} ${section.isWide ? 'col-span-2' : ''}`}>
-                <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
-                    <h2 className="text-sm font-medium text-gray-700 uppercase tracking-wide truncate pr-2">{section.name}</h2>
+            <div className={`bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all duration-200 ${isFlashing ? 'ring-2 ring-blue-500' : ''} ${section.isWide ? 'col-span-2' : ''}`}>
+                <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-100">
+                    <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider truncate pr-2">{section.name}</h2>
                     <div className="flex gap-1 shrink-0">
                         {editMode ? (
                             <>
-                                <button onClick={() => onEdit(sectionKey)} className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"><Icon name="edit-3" size={14} /></button>
-                                <button onClick={() => onToggleVisibility(sectionKey)} className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"><Icon name="eye-off" size={14} /></button>
-                                <button onClick={() => onDelete(sectionKey)} className="p-1.5 rounded bg-red-100 text-red-600 hover:bg-red-200"><Icon name="trash-2" size={14} /></button>
+                                <button onClick={() => onEdit(sectionKey)} className="p-1.5 rounded-lg bg-gray-50 text-blue-600 hover:bg-blue-50"><Icon name="edit-3" size={14} /></button>
+                                <button onClick={() => onToggleVisibility(sectionKey)} className="p-1.5 rounded-lg bg-gray-50 text-gray-400"><Icon name="eye-off" size={14} /></button>
+                                <button onClick={() => onDelete(sectionKey)} className="p-1.5 rounded-lg bg-red-50 text-red-500"><Icon name="trash-2" size={14} /></button>
                             </>
                         ) : (
                             <>
-                                <button onClick={() => onToggleLock(sectionKey)} className={`p-1.5 rounded ${section.locked ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-600'}`}>
+                                <button onClick={() => onToggleLock(sectionKey)} className={`p-1.5 rounded-lg transition-colors ${section.locked ? 'bg-amber-100 text-amber-600' : 'bg-gray-50 text-gray-400'}`}>
                                     <Icon name={section.locked ? "lock" : "unlock"} size={14} />
                                 </button>
-                                <button onClick={() => onToggleVisibility(sectionKey)} className="p-1.5 rounded bg-gray-100 text-gray-600"><Icon name="eye" size={14} /></button>
+                                {!section.locked && <button onClick={() => onToggleVisibility(sectionKey)} className="p-1.5 rounded-lg bg-gray-50 text-gray-400"><Icon name="eye" size={14} /></button>}
                             </>
                         )}
                     </div>
                 </div>
-                <div className={`text-center flex items-center justify-center ${isFullScreen ? 'min-h-[180px]' : 'min-h-[100px]'} p-4`}>
-                    <div className={`font-semibold text-gray-900 ${isFullScreen ? 'text-4xl' : 'text-2xl'} break-words w-full`}>{section.current}</div>
+                <div className={`text-center flex items-center justify-center ${isFullScreen ? 'min-h-[160px]' : 'min-h-[110px]'} p-4`}>
+                    <div className={`font-bold text-gray-800 ${isFullScreen ? 'text-4xl' : 'text-2xl'} leading-tight break-words w-full`}>{section.current}</div>
                 </div>
             </div>
         );
 
         const JazzPracticeApp = () => {
-            const [sections, setSections] = useState(() => JSON.parse(localStorage.getItem('jazzPracticeSections')) || {
-                key: { name: 'Key', options: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'], visible: true, locked: false, current: 'C', row: 0, col: 0 },
-                chord: { name: 'Chord', options: ['maj7', 'm7', '7', 'm7b5'], visible: true, locked: false, current: 'maj7', row: 0, col: 1 }
+            // Initial Data
+            const [sections, setSections] = useState(() => JSON.parse(localStorage.getItem('jazzSections')) || {
+                key: { name: 'Key', options: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'], visible: true, locked: false, current: 'C', isWide: false },
+                chord: { name: 'Chord', options: ['Maj7', 'min7', '7', 'm7b5', 'dim7', 'alt'], visible: true, locked: false, current: 'Maj7', isWide: false },
+                scale: { name: 'Scale', options: ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'], visible: true, locked: false, current: 'Ionian', isWide: false }
             });
 
-            const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'slate');
-            const [isFullScreen, setIsFullScreen] = useState(localStorage.getItem('jazzPracticeFullScreen') === 'true');
+            const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzTheme') || 'slate');
+            const [isFullScreen, setIsFullScreen] = useState(localStorage.getItem('jazzFullScreen') === 'true');
+            const [presets, setPresets] = useState(() => JSON.parse(localStorage.getItem('jazzPresets')) || {});
+            
+            // UI States
             const [editMode, setEditMode] = useState(false);
             const [showAddModal, setShowAddModal] = useState(false);
+            const [showPresetModal, setShowPresetModal] = useState(false);
             const [editingKey, setEditingKey] = useState(null);
             const [editForm, setEditForm] = useState({ name: '', options: '', isWide: false });
-            const [isFlashing, setIsFlashing] = useState(false);
-            const [presets, setPresets] = useState(() => JSON.parse(localStorage.getItem('jazzPracticePresets')) || {});
-            const [showPresetModal, setShowPresetModal] = useState(false);
             const [presetName, setPresetName] = useState('');
+            const [isFlashing, setIsFlashing] = useState(false);
 
-            useEffect(() => { localStorage.setItem('jazzPracticeSections', JSON.stringify(sections)); }, [sections]);
-            useEffect(() => { localStorage.setItem('jazzPracticeTheme', themeColor); }, [themeColor]);
-            useEffect(() => { localStorage.setItem('jazzPracticeFullScreen', isFullScreen); }, [isFullScreen]);
-            useEffect(() => { localStorage.setItem('jazzPracticePresets', JSON.stringify(presets)); }, [presets]);
+            // Persist Data
+            useEffect(() => { localStorage.setItem('jazzSections', JSON.stringify(sections)); }, [sections]);
+            useEffect(() => { localStorage.setItem('jazzTheme', themeColor); }, [themeColor]);
+            useEffect(() => { localStorage.setItem('jazzFullScreen', isFullScreen); }, [isFullScreen]);
+            useEffect(() => { localStorage.setItem('jazzPresets', JSON.stringify(presets)); }, [presets]);
 
             const randomize = () => {
                 setSections(prev => {
@@ -118,15 +159,13 @@
                 setSections(prev => ({
                     ...prev,
                     [key]: {
-                        ...prev[key],
+                        ...(prev[key] || {}),
                         name: editForm.name,
                         options: opts,
                         current: opts[0],
                         isWide: editForm.isWide,
                         visible: true,
-                        locked: false,
-                        row: prev[key]?.row || Object.keys(prev).length,
-                        col: prev[key]?.col || 0
+                        locked: false
                     }
                 }));
                 setShowAddModal(false);
@@ -137,37 +176,37 @@
             const theme = THEME_COLORS[themeColor] || THEME_COLORS.slate;
 
             return (
-                <div className={`min-h-screen bg-gradient-to-br ${theme.bg} p-4 pb-28`}>
+                <div className={`min-h-screen bg-gradient-to-br ${theme.bg} p-4 pb-32`}>
                     <div className="max-w-2xl mx-auto">
                         {!isFullScreen && (
                             <div className="text-center mb-6 pt-4">
-                                <h1 className="text-3xl font-bold text-gray-800">Jazz Practice</h1>
-                                <p className="text-gray-500 text-sm">Offline Practice Tool</p>
+                                <h1 className="text-3xl font-black text-gray-800 tracking-tight">Jazz Practice</h1>
+                                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Randomized Generator</p>
                             </div>
                         )}
 
-                        <div className="bg-white/80 backdrop-blur rounded-xl p-2 mb-4 flex justify-between items-center shadow-sm border border-white">
+                        <div className="bg-white/90 backdrop-blur rounded-2xl p-2 mb-6 flex justify-between items-center shadow-sm border border-white/50 sticky top-4 z-10">
                             <div className="flex gap-1">
-                                <button onClick={() => setEditMode(!editMode)} className={`p-2 rounded-lg flex items-center gap-2 text-sm font-medium ${editMode ? theme.primary + ' text-white' : 'bg-gray-100 text-gray-600'}`}>
-                                    <Icon name="settings" size={18} /> {editMode ? 'Done' : 'Edit'}
+                                <button onClick={() => setEditMode(!editMode)} className={`px-3 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-all ${editMode ? theme.primary + ' text-white shadow-lg transform scale-105' : 'bg-transparent text-gray-500 hover:bg-gray-100'}`}>
+                                    <Icon name={editMode ? "check" : "settings"} size={16} /> {editMode ? 'Done' : 'Edit'}
                                 </button>
                                 {editMode && (
-                                    <button onClick={() => { setEditingKey(null); setEditForm({name:'', options:'', isWide:false}); setShowAddModal(true); }} className={`p-2 rounded-lg ${theme.primary} text-white flex items-center gap-1 text-sm font-medium`}>
-                                        <Icon name="plus" size={18} /> Add
+                                    <button onClick={() => { setEditingKey(null); setEditForm({name:'', options:'', isWide:false}); setShowAddModal(true); }} className={`px-3 py-2 rounded-xl bg-blue-600 text-white flex items-center gap-2 text-sm font-bold shadow-md`}>
+                                        <Icon name="plus" size={16} /> Add
                                     </button>
                                 )}
                                 {!editMode && (
-                                    <button onClick={() => setShowPresetModal(true)} className="p-2 bg-gray-100 text-gray-600 rounded-lg flex items-center gap-1 text-sm font-medium">
-                                        <Icon name="bookmark" size={18} /> Presets
+                                    <button onClick={() => setShowPresetModal(true)} className="px-3 py-2 bg-transparent text-gray-500 hover:bg-gray-100 rounded-xl flex items-center gap-2 text-sm font-bold">
+                                        <Icon name="bookmark" size={16} /> Presets
                                     </button>
                                 )}
                             </div>
-                            <button onClick={() => setIsFullScreen(!isFullScreen)} className="p-2 bg-gray-100 text-gray-600 rounded-lg">
+                            <button onClick={() => setIsFullScreen(!isFullScreen)} className="p-2 bg-gray-100 text-gray-500 rounded-xl hover:bg-gray-200">
                                 <Icon name={isFullScreen ? "minimize" : "maximize"} size={18} />
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 animate-in fade-in duration-500">
                             {Object.entries(sections).filter(([_, s]) => s.visible || editMode).map(([k, s]) => (
                                 <PracticeSection 
                                     key={k} sectionKey={k} section={s} 
@@ -175,66 +214,66 @@
                                     onToggleVisibility={key => setSections(p => ({...p, [key]: {...p[key], visible: !p[key].visible}}))}
                                     onToggleLock={key => setSections(p => ({...p, [key]: {...p[key], locked: !p[key].locked}}))}
                                     onEdit={key => { setEditingKey(key); setEditForm({name: sections[key].name, options: sections[key].options.join(', '), isWide: !!sections[key].isWide}); setShowAddModal(true); }}
-                                    onDelete={key => setSections(p => { const n = {...p}; delete n[key]; return n; })}
+                                    onDelete={key => { if(confirm('Delete this section?')) setSections(p => { const n = {...p}; delete n[key]; return n; }) }}
                                 />
                             ))}
                         </div>
 
-                        <button onClick={randomize} className={`fixed bottom-6 left-4 right-4 max-w-2xl mx-auto ${theme.primary} text-white rounded-2xl font-bold shadow-2xl flex items-center justify-center gap-3 transition-all h-16 text-xl active:scale-95`}>
-                            <Icon name="shuffle" size={24} /> Randomize
+                        <button onClick={randomize} className={`fixed bottom-8 left-4 right-4 max-w-2xl mx-auto ${theme.primary} text-white rounded-2xl font-black shadow-xl flex items-center justify-center gap-3 transition-all h-16 text-xl active:scale-95 z-20 border-2 border-white/20`}>
+                            <Icon name="shuffle" size={24} /> RANDOMIZE
                         </button>
                     </div>
 
-                    {/* ADD/EDIT MODAL */}
+                    {/* MODALS */}
                     {showAddModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom">
-                                <h3 className="text-xl font-bold mb-4">{editingKey ? 'Edit Section' : 'Add Section'}</h3>
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 z-50 animate-in fade-in">
+                            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom duration-300">
+                                <h3 className="text-lg font-bold mb-4 text-gray-800">{editingKey ? 'Edit Section' : 'Add New Section'}</h3>
                                 <div className="space-y-4">
                                     <div>
                                         <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Title</label>
-                                        <input className="w-full border-2 border-gray-100 p-3 rounded-xl focus:border-blue-500 outline-none" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="e.g., Target Notes" />
+                                        <input className="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl focus:border-blue-500 outline-none font-medium" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="e.g. Target Notes" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Options (comma separated)</label>
-                                        <textarea className="w-full border-2 border-gray-100 p-3 rounded-xl h-24 focus:border-blue-500 outline-none" value={editForm.options} onChange={e => setEditForm({...editForm, options: e.target.value})} placeholder="3rd, 7th, 9th..." />
+                                        <textarea className="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl h-24 focus:border-blue-500 outline-none font-medium" value={editForm.options} onChange={e => setEditForm({...editForm, options: e.target.value})} placeholder="Root, 3rd, 5th, 7th..." />
                                     </div>
-                                    <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                        <input type="checkbox" className="w-5 h-5" checked={editForm.isWide} onChange={e => setEditForm({...editForm, isWide: e.target.checked})} />
-                                        <span className="text-sm font-medium text-gray-700">Full Width Layout</span>
+                                    <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer">
+                                        <input type="checkbox" className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500" checked={editForm.isWide} onChange={e => setEditForm({...editForm, isWide: e.target.checked})} />
+                                        <span className="text-sm font-bold text-gray-600">Wide Mode (Full Width)</span>
                                     </label>
                                     <div className="flex gap-3 pt-2">
-                                        <button onClick={handleSaveSection} className={`flex-1 ${theme.primary} text-white py-4 rounded-xl font-bold shadow-lg`}>Save</button>
-                                        <button onClick={() => setShowAddModal(false)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-xl font-bold">Cancel</button>
+                                        <button onClick={handleSaveSection} className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg">Save</button>
+                                        <button onClick={() => setShowAddModal(false)} className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold">Cancel</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* PRESET MODAL */}
                     {showPresetModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
                             <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                                <h3 className="text-xl font-bold mb-4">Presets & Themes</h3>
+                                <h3 className="text-lg font-bold mb-4 text-gray-800">Presets & Themes</h3>
                                 <div className="flex gap-2 mb-6">
-                                    <input className="flex-1 border p-3 rounded-xl outline-none" placeholder="Preset Name" value={presetName} onChange={e => setPresetName(e.target.value)} />
-                                    <button onClick={() => { if(!presetName) return; setPresets(p => ({...p, [presetName]: {sections, themeColor}})); setPresetName(''); }} className={`${theme.primary} text-white px-4 rounded-xl font-bold`}>Save</button>
+                                    <input className="flex-1 bg-gray-50 border-2 border-gray-100 p-3 rounded-xl outline-none font-medium" placeholder="New Preset Name" value={presetName} onChange={e => setPresetName(e.target.value)} />
+                                    <button onClick={() => { if(!presetName) return; setPresets(p => ({...p, [presetName]: {sections, themeColor}})); setPresetName(''); }} className="bg-green-600 text-white px-4 rounded-xl font-bold shadow-md">Save</button>
                                 </div>
-                                <div className="space-y-2 max-h-48 overflow-y-auto mb-6">
+                                <div className="space-y-2 max-h-48 overflow-y-auto mb-6 pr-2">
+                                    {Object.keys(presets).length === 0 && <p className="text-center text-gray-400 italic text-sm">No saved presets yet</p>}
                                     {Object.keys(presets).map(k => (
-                                        <div key={k} className="flex gap-2">
-                                            <button onClick={() => { setSections(presets[k].sections); setThemeColor(presets[k].themeColor); setShowPresetModal(false); }} className="flex-1 bg-gray-50 p-3 rounded-xl text-left font-medium hover:bg-gray-100">{k}</button>
-                                            <button onClick={() => setPresets(p => {const n={...p}; delete n[k]; return n})} className="p-3 bg-red-50 text-red-500 rounded-xl"><Icon name="trash-2" size={18}/></button>
+                                        <div key={k} className="flex gap-2 group">
+                                            <button onClick={() => { setSections(presets[k].sections); setThemeColor(presets[k].themeColor); setShowPresetModal(false); }} className="flex-1 bg-gray-50 p-3 rounded-xl text-left font-medium text-gray-700 hover:bg-gray-100 transition-colors">{k}</button>
+                                            <button onClick={() => setPresets(p => {const n={...p}; delete n[k]; return n})} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100"><Icon name="trash-2" size={18}/></button>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="grid grid-cols-5 gap-2 mb-6">
+                                <div className="grid grid-cols-6 gap-2 mb-6">
                                     {Object.keys(THEME_COLORS).map(c => (
-                                        <button key={c} onClick={() => setThemeColor(c)} className={`h-10 rounded-xl ${THEME_COLORS[c].primary} ${themeColor === c ? 'ring-4 ring-blue-200' : ''}`} />
+                                        <button key={c} onClick={() => setThemeColor(c)} className={`h-10 rounded-xl ${THEME_COLORS[c].primary} ${themeColor === c ? 'ring-4 ring-offset-2 ring-gray-300' : 'opacity-70 hover:opacity-100'} transition-all`} />
                                     ))}
                                 </div>
-                                <button onClick={() => setShowPresetModal(false)} className="w-full py-4 bg-gray-100 rounded-xl font-bold">Close</button>
+                                <button onClick={() => setShowPresetModal(false)} className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">Close</button>
                             </div>
                         </div>
                     )}
@@ -243,13 +282,4 @@
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<JazzPracticeApp />);
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
-            });
-        }
-    </script>
-</body>
-</html>
+        root.re

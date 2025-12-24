@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jazz-v3'; // Changed to v3 to force update
+const CACHE_NAME = 'jazz-app-v5'; // Update version to force refresh
 const ASSETS = [
   './',
   'index.html',
@@ -11,30 +11,19 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-  // Use 'no-cors' for CDNs to avoid installation failure if opaque
+  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // We manually fetch to ensure we can handle opaque responses if needed
-      return Promise.all(
-        ASSETS.map((url) =>
-          fetch(url, { mode: 'no-cors' }).then((res) => cache.put(url, res))
-        )
-      );
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) => Promise.all(
+      keys.map((key) => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      })
+    )).then(() => self.clients.claim())
   );
 });
 
