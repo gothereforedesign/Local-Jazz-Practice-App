@@ -6,17 +6,23 @@
     <title>Jazz Practice Pro</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         .lucide { vertical-align: middle; display: inline-block; }
+        /* Loading spinner for the initial load */
+        #loading { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; font-family: sans-serif; color: #666; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div id="loading">Loading Jazz Practice...</div>
+    </div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
