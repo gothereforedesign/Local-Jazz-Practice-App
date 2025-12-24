@@ -3,8 +3,8 @@
   "short_name": "JazzPrac",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#475569",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e293b",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2907/2907253.png",
