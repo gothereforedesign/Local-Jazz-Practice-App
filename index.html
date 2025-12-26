@@ -6,42 +6,83 @@
     <title>Jazz Practice Pro</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script crossorigin src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
-        body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; background: #f8fafc; }
+        body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; background: #f1f5f9; }
+        .drag-handle { cursor: grab; }
         #loading { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; font-family: sans-serif; color: #64748b; }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div id="loading">Loading Jazz Practice...</div>
-    </div>
-
+    <div id="root"><div id="loading">Loading Jazz Practice...</div></div>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Custom Icon component to handle Lucide in a browser environment
         const Icon = ({ name, size = 18, className = "" }) => {
             const iconRef = useRef(null);
-            useEffect(() => { if (iconRef.current) lucide.createIcons(); }, [name]);
+            useEffect(() => { if (window.lucide) lucide.createIcons(); }, [name]);
             return <i ref={iconRef} data-lucide={name} style={{width: size, height: size}} className={className}></i>;
         };
+        const JazzPracticeApp = () => {
+            const [isEditMode, setIsEditMode] = useState(false);
+            const [sections, setSections] = useState([
+                { id: 1, title: 'Warmups', content: 'Long tones and articulation.' },
+                { id: 2, title: 'Scales', content: 'Major, Minor, and Bebop scales.' },
+                { id: 3, title: 'Chords', content: 'ii-V-I progressions in all keys.' },
+                { id: 4, title: 'Repertoire', content: 'Standards and improvisation.' }
+            ]);
 
-        // ... Insert your THEME_COLORS, PracticeSection, and JazzPracticeApp logic here ...
-        // Note: Change 'lucide-react' component names (like <Shuffle />) to <Icon name="shuffle" />
+            const moveItem = (idx, direction) => {
+                const newSections = [...sections];
+                const targetIdx = idx + direction;
+                if (targetIdx < 0 || targetIdx >= sections.length) return;
+                [newSections[idx], newSections[targetIdx]] = [newSections[targetIdx], newSections[idx]];
+                setSections(newSections);
+            };
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen pb-20">
+                    <header className="p-6 bg-slate-900 text-white flex justify-between items-center sticky top-0 z-10 shadow-lg">
+                        <h1 className="text-xl font-bold">Jazz Practice Pro</h1>
+                        <button 
+                            onClick={() => setIsEditMode(!isEditMode)}
+                            className={`p-2 rounded-full transition ${isEditMode ? 'bg-amber-500' : 'bg-slate-700'}`}
+                        >
+                            <Icon name={isEditMode ? "check" : "settings"} />
+                        </button>
+                    </header>
+
+                    <main className="p-4 space-y-4">
+                        {sections.map((section, idx) => (
+                            <div key={section.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                                {isEditMode && (
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => moveItem(idx, -1)} className="p-1 hover:bg-slate-100 rounded"><Icon name="chevron-up" /></button>
+                                        <button onClick={() => moveItem(idx, 1)} className="p-1 hover:bg-slate-100 rounded"><Icon name="chevron-down" /></button>
+                                    </div>
+                                )}
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-slate-800">{section.title}</h3>
+                                    <p className="text-sm text-slate-500">{section.content}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </main>
+                </div>
+            );
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<JazzPracticeApp />);
 
-        // Register Service Worker for Offline Use
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js');
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Failed', err));
             });
         }
     </script>
