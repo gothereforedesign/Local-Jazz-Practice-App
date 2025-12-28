@@ -49,20 +49,20 @@
             Bookmark: (p) => <Icon {...p} path='<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>' />
         };
 
-        const THEME_COLORS = {
-            graphite: { bg: 'bg-[#fafafa]', primary: 'bg-[#37352f]', hover: 'hover:bg-[#201f1c]', text: 'text-white' },
-            rust: { bg: 'bg-[#fdf5f2]', primary: 'bg-[#b35944]', hover: 'hover:bg-[#964a39]', text: 'text-white' },
-            sage: { bg: 'bg-[#f3f6f3]', primary: 'bg-[#6a7d6a]', hover: 'hover:bg-[#586858]', text: 'text-white' },
-            teal: { bg: 'bg-[#f0f6f6]', primary: 'bg-[#4b7d7d]', hover: 'hover:bg-[#3d6666]', text: 'text-white' },
-            clay: { bg: 'bg-[#f9f5f3]', primary: 'bg-[#9d6b53]', hover: 'hover:bg-[#835945]', text: 'text-white' },
-            indigo: { bg: 'bg-[#f5f6f8]', primary: 'bg-[#4a5a8a]', hover: 'hover:bg-[#3b486e]', text: 'text-white' },
-            moss: { bg: 'bg-[#f6f7f2]', primary: 'bg-[#5a6b47]', hover: 'hover:bg-[#485639]', text: 'text-white' },
-            ochre: { bg: 'bg-[#fcf7f0]', primary: 'bg-[#c4914d]', hover: 'hover:bg-[#a67b41]', text: 'text-white' },
-            crimson: { bg: 'bg-[#fcf3f3]', primary: 'bg-[#a34a4a]', hover: 'hover:bg-[#853c3c]', text: 'text-white' },
-            slate: { bg: 'bg-[#f1f5f9]', primary: 'bg-[#475569]', hover: 'hover:bg-[#334155]', text: 'text-white' },
-            sand: { bg: 'bg-[#f9f8f4]', primary: 'bg-[#8c826e]', hover: 'hover:bg-[#736a5a]', text: 'text-white' },
-            midnight: { bg: 'bg-[#f2f2f2]', primary: 'bg-[#1a1a1a]', hover: 'hover:bg-[#000000]', text: 'text-white' }
-        };
+const THEME_COLORS = {
+    graphite: { bg: 'bg-[#fafafa]', primary: 'bg-[#37352f]', hover: 'hover:bg-[#201f1c]', text: 'text-white' },
+    rust: { bg: 'bg-[#fdf5f2]', primary: 'bg-[#c94a2c]', hover: 'hover:bg-[#a63d24]', text: 'text-white' },
+    sage: { bg: 'bg-[#f3f6f3]', primary: 'bg-[#5d8a5d]', hover: 'hover:bg-[#4a6e4a]', text: 'text-white' },
+    teal: { bg: 'bg-[#f0f6f6]', primary: 'bg-[#2d8b8b]', hover: 'hover:bg-[#257070]', text: 'text-white' },
+    clay: { bg: 'bg-[#f9f5f3]', primary: 'bg-[#a87554]', hover: 'hover:bg-[#8c5f43]', text: 'text-white' },
+    indigo: { bg: 'bg-[#f5f6f8]', primary: 'bg-[#3d4e7a]', hover: 'hover:bg-[#2f3d5f]', text: 'text-white' },
+    moss: { bg: 'bg-[#f6f7f2]', primary: 'bg-[#6b7f3c]', hover: 'hover:bg-[#556430]', text: 'text-white' },
+    ochre: { bg: 'bg-[#fcf7f0]', primary: 'bg-[#d4a032]', hover: 'hover:bg-[#b38728]', text: 'text-white' },
+    crimson: { bg: 'bg-[#fcf3f3]', primary: 'bg-[#b83838]', hover: 'hover:bg-[#962d2d]', text: 'text-white' },
+    slate: { bg: 'bg-[#f1f5f9]', primary: 'bg-[#4a5d7a]', hover: 'hover:bg-[#384761]', text: 'text-white' },
+    sand: { bg: 'bg-[#f9f8f4]', primary: 'bg-[#9d8e6f]', hover: 'hover:bg-[#7f7158]', text: 'text-white' },
+    midnight: { bg: 'bg-[#f2f2f2]', primary: 'bg-[#1a1a1a]', hover: 'hover:bg-[#000000]', text: 'text-white' }
+};
         const PracticeSection = ({ sectionKey, section, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing, onDragStart, onDragOver, onDrop }) => {
             const [isOver, setIsOver] = useState(false);
 
