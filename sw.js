@@ -3,7 +3,6 @@ const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  // Cache External CDNs
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone/babel.min.js',
@@ -19,6 +18,7 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response => {
+      // Return cached version or fetch new
       return response || fetch(event.request);
     })
   );

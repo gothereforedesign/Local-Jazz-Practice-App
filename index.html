@@ -20,9 +20,10 @@
             -webkit-font-smoothing: antialiased;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .notion-card { transition: transform 0.1s ease, box-shadow 0.1s ease; }
-        .notion-card:active { transform: scale(0.99); }
+        .notion-card { transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; }
+        .notion-card:active { transform: scale(0.98); }
         :-webkit-full-screen { width: 100%; height: 100%; }
+        .drag-over { border: 2px solid #37352f !important; transform: scale(1.02); }
     </style>
 </head>
 <body class="bg-[#ffffff]">
@@ -38,6 +39,7 @@
             Shuffle: (p) => <Icon {...p} path='<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l14.2-12.7c.9-1.1 2.1-1.7 3.5-1.7H22"/><path d="M2 5h1.4c1.3 0 2.5.6 3.3 1.7l14.2 12.7c.9 1.1 2.1 1.7 3.5 1.7H22"/>' />,
             Settings: (p) => <Icon {...p} path='<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>' />,
             EyeOff: (p) => <Icon {...p} path='<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.09"/><line x1="2" y1="2" x2="22" y2="22"/>' />,
+            Eye: (p) => <Icon {...p} path='<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>' />,
             Maximize: (p) => <Icon {...p} path='<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>' />,
             Minimize: (p) => <Icon {...p} path='<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>' />,
             Lock: (p) => <Icon {...p} path='<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' />,
@@ -62,19 +64,28 @@
             midnight: { bg: 'bg-[#f2f2f2]', primary: 'bg-[#1a1a1a]', hover: 'hover:bg-[#000000]', text: 'text-white' }
         };
         const PracticeSection = ({ sectionKey, section, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing, onDragStart, onDragOver, onDrop }) => {
+            const [isOver, setIsOver] = useState(false);
+
             return (
                 <div 
                     draggable={editMode}
                     onDragStart={(e) => onDragStart(e, sectionKey)}
-                    onDragOver={(e) => onDragOver(e)}
-                    onDrop={(e) => onDrop(e, sectionKey)}
-                    className={`bg-white rounded-lg border border-[#e9e9e7] transition-all duration-200 notion-card ${isFlashing ? 'ring-2 ring-[#37352f]/20' : 'shadow-sm'} ${section.isWide ? 'col-span-2' : ''} ${editMode ? 'cursor-grab active:cursor-grabbing border-dashed' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); if(editMode) setIsOver(true); }}
+                    onDragLeave={() => setIsOver(false)}
+                    onDrop={(e) => { setIsOver(false); onDrop(e, sectionKey); }}
+                    className={`bg-white rounded-lg border transition-all duration-200 notion-card ${isFlashing ? 'ring-2 ring-[#37352f]/20' : 'shadow-sm'} ${section.isWide ? 'col-span-2' : ''} 
+                        ${editMode ? 'cursor-grab active:cursor-grabbing border-dashed' : 'border-[#e9e9e7]'} 
+                        ${isOver ? 'drag-over' : ''}
+                        ${!section.visible && editMode ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}
                 >
                     <div className="flex items-center justify-between px-3 py-1.5 bg-[#f7f7f5] border-b border-[#e9e9e7] rounded-t-lg">
                         <h2 className="text-[10px] font-bold text-[#37352f]/40 uppercase tracking-widest">{section.name}</h2>
                         <div className="flex gap-1">
                             {editMode ? (
                                 <React.Fragment>
+                                    <button onClick={() => onToggleVisibility(sectionKey)} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded">
+                                        {section.visible ? <Icons.Eye size={14} /> : <Icons.EyeOff size={14} />}
+                                    </button>
                                     <button onClick={() => onEdit(sectionKey)} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded"><Icons.Settings size={14}/></button>
                                     <button onClick={() => onDelete(sectionKey)} className="p-1 text-red-600/60 hover:bg-red-50 rounded"><Icons.Trash2 size={14} /></button>
                                 </React.Fragment>
@@ -89,7 +100,9 @@
                         </div>
                     </div>
                     <div className="text-center py-8 min-h-[100px] flex items-center justify-center">
-                        <div className="font-medium text-[#37352f] text-2xl px-4 leading-tight">{section.current}</div>
+                        <div className="font-medium text-[#37352f] text-2xl px-4 leading-tight">
+                            {!section.visible && !editMode ? "---" : section.current}
+                        </div>
                     </div>
                 </div>
             );
@@ -152,15 +165,26 @@
             };
 
             const handleDragStart = (e, key) => { if (!editMode) return; setDraggedKey(key); e.dataTransfer.effectAllowed = "move"; };
-            const handleDragOver = (e) => { e.preventDefault(); };
+            
             const handleDrop = (e, targetKey) => {
                 e.preventDefault();
                 if (draggedKey === targetKey) return;
+
                 setSections(prev => {
+                    const entries = Object.entries(prev).sort((a, b) => a[1].order - b[1].order);
+                    const keys = entries.map(ent => ent[0]);
+                    
+                    const fromIndex = keys.indexOf(draggedKey);
+                    const toIndex = keys.indexOf(targetKey);
+                    
+                    const newKeys = [...keys];
+                    const [movedKey] = newKeys.splice(fromIndex, 1);
+                    newKeys.splice(toIndex, 0, movedKey);
+                    
                     const next = { ...prev };
-                    const tempOrder = next[draggedKey].order;
-                    next[draggedKey].order = next[targetKey].order;
-                    next[targetKey].order = tempOrder;
+                    newKeys.forEach((key, index) => {
+                        next[key].order = index;
+                    });
                     return next;
                 });
             };
@@ -224,7 +248,7 @@
                                         onEdit={(id) => { setEditingSection(id); setEditForm({ name: s.name, options: s.options.join(', '), isWide: !!s.isWide }); }}
                                         onDelete={(id) => setSections(p => { const n = {...p}; delete n[id]; return n; })}
                                         isFlashing={isFlashing}
-                                        onDragStart={handleDragStart} onDragOver={handleDragOver} onDrop={handleDrop}
+                                        onDragStart={handleDragStart} onDrop={handleDrop}
                                     />
                             ))}
                         </div>
@@ -291,6 +315,15 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<JazzPracticeApp />);
+
+        // --- PWA SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Success:', reg))
+                    .catch(err => console.log('SW Failure:', err));
+            });
+        }
     </script>
 </body>
 </html>
