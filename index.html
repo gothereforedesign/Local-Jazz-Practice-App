@@ -324,7 +324,11 @@ const JazzPracticeApp = () => {
                                 onToggleVisibility={(id) => setSections(p => ({...p, [id]: {...p[id], visible: !p[id].visible}}))}
                                 onToggleLock={(id) => setSections(p => ({...p, [id]: {...p[id], locked: !p[id].locked}}))}
                                 onEdit={(id) => { setEditingSection(id); setEditForm({ name: s.name, options: s.options.join(', '), isWide: !!s.isWide }); }}
-                                onDelete={(id) => setSections(p => { const n = {...p}; delete n[id]; return n; })}
+                                onDelete={(id) => {
+                                    if (window.confirm("Are you sure you want to delete this section? This cannot be undone.")) {
+                                        setSections(p => { const n = {...p}; delete n[id]; return n; });
+                                    }
+                                }}
                                 isFlashing={isFlashing}
                                 onDragStart={handleDragStart} onDrop={handleDrop}
                             />
