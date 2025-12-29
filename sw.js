@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jazz-practice-v2';
+const CACHE_NAME = 'jazz-practice-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -18,7 +18,6 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response => {
-      // Return cached version or fetch new
       return response || fetch(event.request);
     })
   );
