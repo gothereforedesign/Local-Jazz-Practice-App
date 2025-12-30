@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jazz Practice Randomizer</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffffff">
@@ -18,10 +18,12 @@
             overscroll-behavior-y: none; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
             -webkit-font-smoothing: antialiased;
+            /* Prevent text selection in app-like feel */
+            user-select: none;
+            -webkit-user-select: none;
         }
-        /* Hide scrollbar for Chrome, Safari and Opera */
+        /* Hide scrollbar */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        /* Hide scrollbar for IE, Edge and Firefox */
         .hide-scrollbar { -ms-overflow-style: none;  scrollbar-width: none; }
         
         .notion-card { transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; }
@@ -29,10 +31,7 @@
         :-webkit-full-screen { width: 100%; height: 100%; }
         .drag-over { border: 2px solid #37352f !important; transform: scale(1.02); }
         
-        /* Fade mask for the scrolling presets */
         .fade-mask-r { -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%); mask-image: linear-gradient(to right, black 85%, transparent 100%); }
-        
-        /* Utility for vertical text in landscape sidebar */
         .vertical-text { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); }
     </style>
 </head>
@@ -47,7 +46,7 @@
         
         const Icons = {
             Shuffle: (p) => <Icon {...p} path='<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l14.2-12.7c.9-1.1 2.1-1.7 3.5-1.7H22"/><path d="M2 5h1.4c1.3 0 2.5.6 3.3 1.7l14.2 12.7c.9 1.1 2.1 1.7 3.5 1.7H22"/>' />,
-            Settings: (p) => <Icon {...p} path='<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>' />,
+            Settings: (p) => <Icon {...p} path='<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>' />,
             EyeOff: (p) => <Icon {...p} path='<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.09"/><line x1="2" y1="2" x2="22" y2="22"/>' />,
             Eye: (p) => <Icon {...p} path='<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>' />,
             Maximize: (p) => <Icon {...p} path='<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>' />,
@@ -133,7 +132,6 @@ const JazzPracticeApp = () => {
 
     const [presets, setPresets] = useState(() => {
         const saved = JSON.parse(localStorage.getItem('jazzPracticePresets')) || {};
-        // Ensure legacy presets have an order
         Object.keys(saved).forEach((k, idx) => {
             if (saved[k].order === undefined) saved[k].order = idx;
         });
@@ -272,16 +270,28 @@ const JazzPracticeApp = () => {
         reader.readAsText(file);
     };
 
+    // Calculate grid logic for Stand Mode
+    const activeSections = Object.entries(sections)
+        .sort((a, b) => a[1].order - b[1].order)
+        .filter(([_, s]) => s.visible);
+    
+    const count = activeSections.length;
+    let gridClass = 'grid-cols-1 grid-rows-1';
+    if(count === 2) gridClass = 'grid-cols-2 grid-rows-1';
+    if(count === 3 || count === 4) gridClass = 'grid-cols-2 grid-rows-2';
+    if(count === 5 || count === 6) gridClass = 'grid-cols-3 grid-rows-2';
+    if(count > 6) gridClass = 'grid-cols-4 grid-rows-2';
+
     const currentTheme = THEME_COLORS[themeColor] || THEME_COLORS.garnet;
     const sortedPresets = Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
 
     return (
-        <div className={`min-h-screen ${currentTheme.bg} transition-colors duration-500 pb-24 landscape:pb-4`}>
+        <div className={`min-h-screen ${currentTheme.bg} transition-colors duration-500`}>
             
-            {/* Main Content Container with Space for Sidebar in Landscape */}
-            <div className="max-w-2xl mx-auto px-4 pt-8 landscape:max-w-none landscape:mr-24 landscape:pt-4">
-                <div className="mb-2 landscape:mb-0">
-                    <div className="flex justify-between items-end mb-4 landscape:hidden">
+            {/* --- PORTRAIT MODE CONTAINER (Hidden in Landscape) --- */}
+            <div className="landscape:hidden pb-24 max-w-2xl mx-auto px-4 pt-8">
+                <div className="mb-2">
+                    <div className="flex justify-between items-end mb-4">
                         <div>
                             <h1 className="text-[#37352f] text-2xl font-bold tracking-tight">Jazz Practice</h1>
                             <p className="text-[#37352f]/40 text-[10px] font-bold uppercase tracking-[0.2em]">Randomizer</p>
@@ -293,7 +303,7 @@ const JazzPracticeApp = () => {
                         )}
                     </div>
 
-                    {/* Horizontal Scrollable Presets Strip */}
+                    {/* Presets Strip */}
                     {!editMode && sortedPresets.length > 0 && (
                         <div className="mb-3 relative group">
                             <div className="flex gap-2 overflow-x-auto hide-scrollbar fade-mask-r pb-1">
@@ -306,7 +316,7 @@ const JazzPracticeApp = () => {
                                             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap transition-all active:scale-95
                                                 ${isActive 
                                                     ? `${currentTheme.primary} ${currentTheme.text} border-transparent shadow-sm` 
-                                                    : 'bg-white/50 hover:bg-white text-[#37352f]/70 border-transparent shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]'
+                                                    : 'bg-white/50 hover:bg-white text-[#37352f]/60 border-transparent'
                                                 }`}
                                         >
                                             {k}
@@ -318,6 +328,7 @@ const JazzPracticeApp = () => {
                         </div>
                     )}
                     
+                    {/* Controls Bar */}
                     <div className="bg-white border border-[#e9e9e7] rounded-lg p-1 flex justify-between items-center shadow-sm mb-6">
                         <div className="flex gap-1">
                             <button onClick={() => setEditMode(!editMode)} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${editMode ? 'bg-[#37352f] text-white' : 'text-[#37352f]/70 hover:bg-[#f7f7f5]'}`}>
@@ -334,11 +345,10 @@ const JazzPracticeApp = () => {
                                 </button>
                             )}
                         </div>
-                        {isFullScreen && (
-                            <span className="px-3 py-1.5 text-[10px] font-bold text-[#37352f]/20 tracking-widest landscape:hidden">FULLSCREEN MODE</span>
-                        )}
                     </div>
                 </div>
+
+                {/* Grid */}
                 <div className="grid grid-cols-2 gap-4">
                     {Object.entries(sections)
                         .sort((a, b) => a[1].order - b[1].order)
@@ -360,9 +370,9 @@ const JazzPracticeApp = () => {
                     ))}
                 </div>
 
-                {/* Portrait Bottom Randomize Button (Hidden in Landscape) */}
+                {/* Floating Randomize Button */}
                 {!editMode && (
-                    <div className="fixed bottom-8 left-0 right-0 px-4 landscape:hidden">
+                    <div className="fixed bottom-8 left-0 right-0 px-4">
                         <button onClick={randomize} className={`max-w-2xl mx-auto w-full py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] 
                             ${currentTheme.primary} ${currentTheme.text} ${currentTheme.hover}`}>
                             <Icons.Shuffle size={20}/>
@@ -372,18 +382,49 @@ const JazzPracticeApp = () => {
                 )}
             </div>
 
-            {/* Landscape Right Sidebar Randomize Button (Hidden in Portrait) */}
-            {!editMode && (
-                <div className="hidden landscape:flex fixed top-0 bottom-0 right-0 w-20 bg-transparent items-center justify-center z-40">
-                    <button onClick={randomize} className={`h-full w-full flex flex-col items-center justify-center gap-4 transition-all active:opacity-90 
-                        ${currentTheme.primary} ${currentTheme.text} shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)]`}>
-                        <div className="-rotate-90"><Icons.Shuffle size={24}/></div>
-                        <span className="font-bold tracking-[0.2em] text-sm uppercase vertical-text">Randomize</span>
+            {/* --- LANDSCAPE MODE CONTAINER (STAND MODE) --- */}
+            <div className="hidden landscape:flex fixed inset-0 z-50 bg-[#ffffff]">
+                {/* Left 80% - Content Grid */}
+                <div className={`flex-grow h-full grid gap-px bg-[#e9e9e7] ${gridClass} p-0 overflow-hidden relative`}>
+                    
+                    {/* Stealth Preset Trigger */}
+                    <button onClick={() => setShowPresetModal(true)} className="absolute top-2 left-2 z-20 p-2 text-[#37352f]/10 hover:text-[#37352f]/50 transition-colors">
+                        <Icons.Bookmark size={16} />
                     </button>
+
+                    {activeSections.map(([k, s]) => (
+                        <div key={k} className="bg-white flex flex-col items-center justify-center relative overflow-hidden group">
+                            {/* Header Label */}
+                            <div className="absolute top-4 left-0 right-0 text-center">
+                                <span className="text-[10px] font-bold text-[#37352f]/30 uppercase tracking-[0.2em]">{s.name}</span>
+                            </div>
+                            
+                            {/* Main Content - Auto Scaling Text */}
+                            <div className="w-full text-center px-4">
+                                <span className={`font-medium text-[#37352f] leading-none tracking-tight
+                                    ${count === 1 ? 'text-[120px]' : 
+                                      count === 2 ? 'text-[80px]' : 
+                                      count <= 4 ? 'text-[60px]' : 'text-[40px]'}`}>
+                                    {s.current}
+                                </span>
+                            </div>
+                            
+                            {/* Lock Icon Indicator */}
+                            {s.locked && <div className="absolute top-4 right-4 text-[#b35944]"><Icons.Lock size={14}/></div>}
+                        </div>
+                    ))}
+                    {count === 0 && <div className="bg-white col-span-full flex items-center justify-center text-[#37352f]/30 italic">No visible sections</div>}
                 </div>
-            )}
+
+                {/* Right 20% - Action Bar */}
+                <button onClick={randomize} className={`w-[20%] h-full flex flex-col items-center justify-center gap-6 cursor-pointer active:opacity-90 active:scale-[0.99] transition-all
+                    ${currentTheme.primary} ${currentTheme.text} shadow-[-4px_0_20px_rgba(0,0,0,0.1)] z-10`}>
+                    <div className="-rotate-90 scale-150 opacity-80"><Icons.Shuffle size={24}/></div>
+                    <span className="font-bold tracking-[0.3em] text-sm uppercase vertical-text opacity-90">Randomize</span>
+                </button>
+            </div>
             {showPresetModal && (
-                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
                     <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-sm w-full shadow-2xl overflow-y-auto max-h-[90vh]">
                         <h3 className="text-lg font-bold text-[#37352f] mb-4">Practice Presets</h3>
                         
@@ -398,7 +439,7 @@ const JazzPracticeApp = () => {
                             <button onClick={savePreset} disabled={!presetName.trim()} className="w-full bg-[#37352f] text-white py-2 rounded-lg font-bold hover:bg-[#201f1c] disabled:opacity-50 transition-colors text-sm">Save Current Setup</button>
                         </div>
                         
-                        {/* Preset List with Reordering */}
+                        {/* Preset List */}
                         <div className="space-y-2 mb-6 max-h-48 overflow-y-auto pr-2">
                             {sortedPresets.length === 0 && <p className="text-center text-[#37352f]/40 text-sm italic">No saved presets</p>}
                             {sortedPresets.map(([k, v], idx) => (
@@ -440,7 +481,7 @@ const JazzPracticeApp = () => {
             )}
 
             {editingSection && (
-                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
                     <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-md w-full shadow-2xl overflow-y-auto max-h-[90vh]">
                         <h3 className="text-lg font-bold mb-4 text-[#37352f]">Section Properties</h3>
                         <input className="w-full bg-[#f7f7f5] border border-[#e9e9e7] p-3 rounded-lg mb-4 focus:outline-none focus:ring-1 focus:ring-[#37352f]/20" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Section Name" />
