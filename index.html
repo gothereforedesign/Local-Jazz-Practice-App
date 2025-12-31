@@ -28,7 +28,6 @@
         :-webkit-full-screen { width: 100%; height: 100%; }
         .drag-over { border: 2px solid #37352f !important; transform: scale(1.02); }
         .fade-mask-r { -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%); mask-image: linear-gradient(to right, black 85%, transparent 100%); }
-        .vertical-text { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); }
     </style>
 </head>
 <body class="bg-[#ffffff]">
@@ -266,16 +265,17 @@
                 reader.readAsText(file);
             };
 
+            // Calculate grid logic for Stand Mode
             const activeSections = Object.entries(sections)
                 .sort((a, b) => a[1].order - b[1].order)
                 .filter(([_, s]) => s.visible);
             
-            const count = activeSections.length;
-            let gridClass = 'grid-cols-1 grid-rows-1';
-            if(count === 2) gridClass = 'grid-cols-2 grid-rows-1';
-            if(count === 3 || count === 4) gridClass = 'grid-cols-2 grid-rows-2';
-            if(count === 5 || count === 6) gridClass = 'grid-cols-3 grid-rows-2';
-            if(count > 6) gridClass = 'grid-cols-4 grid-rows-2';
+            // Calculate total "slots" needed (Wide = 2, Normal = 1)
+            const totalSlots = activeSections.reduce((acc, [_, s]) => acc + (s.isWide ? 2 : 1), 0);
+            
+            // Determine rows based on slots (assuming 2 columns max)
+            const landscapeRows = totalSlots <= 2 ? 1 : 2;
+            const landscapeGridClass = `grid-cols-2 grid-rows-${landscapeRows}`;
 
             const currentTheme = THEME_COLORS[themeColor] || THEME_COLORS.garnet;
             const sortedPresets = Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
@@ -379,23 +379,22 @@
 
                     {/* --- LANDSCAPE MODE CONTAINER (STAND MODE) --- */}
                     <div className="hidden landscape:flex fixed inset-0 z-50 bg-[#ffffff]">
-                        <div className={`flex-grow h-full grid gap-px bg-[#e9e9e7] ${gridClass} p-0 overflow-hidden relative`}>
+                        <div className={`flex-grow h-full grid gap-px bg-[#e9e9e7] ${landscapeGridClass} p-0 overflow-hidden relative`}>
                             
                             <button onClick={() => setShowPresetModal(true)} className="absolute top-2 left-2 z-20 p-2 text-[#37352f]/10 hover:text-[#37352f]/50 transition-colors">
                                 <Icons.Bookmark size={16} />
                             </button>
 
                             {activeSections.map(([k, s]) => (
-                                <div key={k} className="bg-white flex flex-col items-center justify-center relative overflow-hidden group">
+                                <div key={k} className={`bg-white flex flex-col items-center justify-center relative overflow-hidden group ${s.isWide ? 'col-span-2' : 'col-span-1'}`}>
                                     <div className="absolute top-4 left-0 right-0 text-center">
                                         <span className="text-[10px] font-bold text-[#37352f]/30 uppercase tracking-[0.2em]">{s.name}</span>
                                     </div>
                                     
                                     <div className="w-full text-center px-4">
                                         <span className={`font-medium text-[#37352f] leading-none tracking-tight
-                                            ${count === 1 ? 'text-[120px]' : 
-                                              count === 2 ? 'text-[80px]' : 
-                                              count <= 4 ? 'text-[60px]' : 'text-[40px]'}`}>
+                                            ${totalSlots <= 2 ? 'text-[100px]' : 
+                                              totalSlots <= 4 ? 'text-[60px]' : 'text-[40px]'}`}>
                                             {s.current}
                                         </span>
                                     </div>
@@ -403,13 +402,12 @@
                                     {s.locked && <div className="absolute top-4 right-4 text-[#b35944]"><Icons.Lock size={14}/></div>}
                                 </div>
                             ))}
-                            {count === 0 && <div className="bg-white col-span-full flex items-center justify-center text-[#37352f]/30 italic">No visible sections</div>}
+                            {activeSections.length === 0 && <div className="bg-white col-span-full flex items-center justify-center text-[#37352f]/30 italic">No visible sections</div>}
                         </div>
 
                         <button onClick={randomize} className={`w-[20%] h-full flex flex-col items-center justify-center gap-6 cursor-pointer active:opacity-90 active:scale-[0.99] transition-all
                             ${currentTheme.primary} ${currentTheme.text} shadow-[-4px_0_20px_rgba(0,0,0,0.1)] z-10`}>
-                            <div className="-rotate-90 scale-150 opacity-80"><Icons.Shuffle size={24}/></div>
-                            <span className="font-bold tracking-[0.3em] text-sm uppercase vertical-text opacity-90">Randomize</span>
+                            <div className="scale-[2.0]"><Icons.Shuffle size={24}/></div>
                         </button>
                     </div>
                     {showPresetModal && (
