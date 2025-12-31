@@ -30,408 +30,352 @@
         .drag-over { border: 2px solid #37352f !important; transform: scale(1.02); }
         
         .fade-mask-r { -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%); mask-image: linear-gradient(to right, black 85%, transparent 100%); }
-        /* Vertical text class removed as it is no longer needed */
     </style>
 </head>
 <body class="bg-[#ffffff]">
     <div id="root"></div>
     <script type="text/babel" data-presets="react,env">
-// 12 Distinct Muted/Jewel Tones
-const THEME_COLORS = {
-    garnet:   { bg: 'bg-[#faf5f5]', primary: 'bg-[#8c2f39]', hover: 'hover:bg-[#70242d]', text: 'text-white' },
-    sienna:   { bg: 'bg-[#faf6f3]', primary: 'bg-[#b06d45]', hover: 'hover:bg-[#8f5636]', text: 'text-white' },
-    gold:     { bg: 'bg-[#fcf7f0]', primary: 'bg-[#c19a52]', hover: 'hover:bg-[#a38043]', text: 'text-white' },
-    moss:     { bg: 'bg-[#f6f7f2]', primary: 'bg-[#6d7a4e]', hover: 'hover:bg-[#59633f]', text: 'text-white' },
-    emerald:  { bg: 'bg-[#f0f7f4]', primary: 'bg-[#2d5a45]', hover: 'hover:bg-[#224535]', text: 'text-white' },
-    teal:     { bg: 'bg-[#f0f6f6]', primary: 'bg-[#4d7a7a]', hover: 'hover:bg-[#3e6363]', text: 'text-white' },
-    sapphire: { bg: 'bg-[#f2f4f8]', primary: 'bg-[#3d4c70]', hover: 'hover:bg-[#2f3b57]', text: 'text-white' },
-    slate:    { bg: 'bg-[#f1f5f9]', primary: 'bg-[#4a5d75]', hover: 'hover:bg-[#3a4a5e]', text: 'text-white' },
-    amethyst: { bg: 'bg-[#f6f3f7]', primary: 'bg-[#6b4c70]', hover: 'hover:bg-[#553c59]', text: 'text-white' },
-    plum:     { bg: 'bg-[#f8f4f7]', primary: 'bg-[#7a5c6f]', hover: 'hover:bg-[#634a59]', text: 'text-white' },
-    charcoal: { bg: 'bg-[#f5f5f5]', primary: 'bg-[#2d2d2d]', hover: 'hover:bg-[#1a1a1a]', text: 'text-white' },
-    taupe:    { bg: 'bg-[#f5f4f2]', primary: 'bg-[#8a7e72]', hover: 'hover:bg-[#6e6359]', text: 'text-white' }
-};
-
-const PracticeSection = ({ sectionKey, section, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing, onDragStart, onDragOver, onDrop }) => {
-    const [isOver, setIsOver] = useState(false);
-
-    return (
-        <div 
-            draggable={editMode}
-            onDragStart={(e) => onDragStart(e, sectionKey)}
-            onDragOver={(e) => { e.preventDefault(); if(editMode) setIsOver(true); }}
-            onDragLeave={() => setIsOver(false)}
-            onDrop={(e) => { setIsOver(false); onDrop(e, sectionKey); }}
-            className={`bg-white rounded-lg border transition-all duration-200 notion-card ${isFlashing ? 'ring-2 ring-[#37352f]/20' : 'shadow-sm'} ${section.isWide ? 'col-span-2' : ''} 
-                ${editMode ? 'cursor-grab active:cursor-grabbing border-dashed' : 'border-[#e9e9e7]'} 
-                ${isOver ? 'drag-over' : ''}
-                ${!section.visible && editMode ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}
-        >
-            <div className="flex items-center justify-between px-3 py-1.5 bg-[#f7f7f5] border-b border-[#e9e9e7] rounded-t-lg">
-                <h2 className="text-[10px] font-bold text-[#37352f]/40 uppercase tracking-widest">{section.name}</h2>
-                <div className="flex gap-1">
-                    {editMode ? (
-                        <React.Fragment>
-                            <button onClick={() => onToggleVisibility(sectionKey)} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded">
-                                {section.visible ? <Icons.Eye size={14} /> : <Icons.EyeOff size={14} />}
-                            </button>
-                            <button onClick={() => onEdit(sectionKey)} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded"><Icons.Settings size={14}/></button>
-                            <button onClick={() => onDelete(sectionKey)} className="p-1 text-red-600/60 hover:bg-red-50 rounded"><Icons.Trash2 size={14} /></button>
-                        </React.Fragment>
-                    ) : (
-                        <React.Fragment>
-                            <button onClick={() => onToggleLock(sectionKey)} className={`p-1 rounded transition-all ${section.locked ? 'text-[#b35944]' : 'text-[#37352f]/40 hover:bg-black/5'}`}>
-                                {section.locked ? <Icons.Lock size={14} /> : <Icons.Unlock size={14} />}
-                            </button>
-                            <button onClick={() => onToggleVisibility(sectionKey)} className="p-1 text-[#37352f]/40 hover:bg-black/5 rounded"><Icons.EyeOff size={14} /></button>
-                        </React.Fragment>
-                    )}
-                </div>
-            </div>
-            <div className="text-center py-8 min-h-[100px] flex items-center justify-center">
-                <div className="font-medium text-[#37352f] text-2xl px-4 leading-tight">
-                    {!section.visible && !editMode ? "---" : section.current}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const JazzPracticeApp = () => {
-    const [sections, setSections] = useState(() => {
-        const saved = localStorage.getItem('jazzPracticeSections');
-        return saved ? JSON.parse(saved) : {
-            's1': { name: 'Key', options: ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'B', 'E', 'A', 'D', 'G'], visible: true, locked: false, current: 'C', order: 0 },
-            's2': { name: 'Chord', options: ['maj7', 'm7', '7', 'm7b5', 'dim7'], visible: true, locked: false, current: 'maj7', order: 1 }
+        const { useState, useEffect, useRef } = React;
+        // --- FIX: Define Icons locally to prevent crash ---
+        const IconBase = ({ d, size = 16, ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d={d} /></svg>
+        );
+        const Icons = {
+            Eye: (p) => <IconBase {...p} d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />, // Fixed path for compound shape
+            EyeOff: (p) => <svg xmlns="http://www.w3.org/2000/svg" width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.08"/><line x1="2" y1="2" x2="22" y2="22"/></svg>,
+            Settings: (p) => <IconBase {...p} d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />, // Simplified path for settings
+            Trash2: (p) => <IconBase {...p} d="M3 6h18 M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6 M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2 M10 11v6 M14 11v6" />,
+            Lock: (p) => <IconBase {...p} d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Z M7 11V7a5 5 0 0 1 10 0v4" />,
+            Unlock: (p) => <IconBase {...p} d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Z M7 11V7a5 5 0 0 1 9.9-1" />,
+            Minimize: (p) => <IconBase {...p} d="M8 3v3a2 2 0 0 1-2 2H3 M21 8h-3a2 2 0 0 1-2-2V3 M3 16h3a2 2 0 0 1 2 2v3 M16 21v-3a2 2 0 0 1 2-2h3" />,
+            Maximize: (p) => <IconBase {...p} d="M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3" />,
+            Shuffle: (p) => <IconBase {...p} d="M16 3h5v5 M4 20L21 3 M21 16v5h-5 M15 15l6 6 M4 4l5 5" />,
+            Bookmark: (p) => <IconBase {...p} d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />,
+            Plus: (p) => <IconBase {...p} d="M12 5v14 M5 12h14" />,
+            ChevronUp: (p) => <IconBase {...p} d="M18 15l-6-6-6 6" />,
+            ChevronDown: (p) => <IconBase {...p} d="M6 9l6 6 6-6" />,
+            Download: (p) => <IconBase {...p} d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3" />,
+            Upload: (p) => <IconBase {...p} d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12" />
         };
-    });
 
-    const [presets, setPresets] = useState(() => {
-        const saved = JSON.parse(localStorage.getItem('jazzPracticePresets')) || {};
-        // Ensure legacy presets have an order
-        Object.keys(saved).forEach((k, idx) => {
-            if (saved[k].order === undefined) saved[k].order = idx;
-        });
-        return saved;
-    });
-    
-    const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'garnet');
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [editMode, setEditMode] = useState(false);
-    const [editingSection, setEditingSection] = useState(null);
-    const [editForm, setEditForm] = useState({ name: '', options: '', isWide: false });
-    const [showPresetModal, setShowPresetModal] = useState(false);
-    const [presetName, setPresetName] = useState('');
-    const [isFlashing, setIsFlashing] = useState(false);
-    const [draggedKey, setDraggedKey] = useState(null);
-    const fileInputRef = useRef(null);
-
-    useEffect(() => localStorage.setItem('jazzPracticeSections', JSON.stringify(sections)), [sections]);
-    useEffect(() => localStorage.setItem('jazzPracticePresets', JSON.stringify(presets)), [presets]);
-    useEffect(() => localStorage.setItem('jazzPracticeTheme', themeColor), [themeColor]);
-
-    const toggleFullScreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => console.log(err));
-            setIsFullScreen(true);
-        } else {
-            document.exitFullscreen();
-            setIsFullScreen(false);
-        }
-    };
-
-    const randomize = () => {
-        setSections(prev => {
-            const next = { ...prev };
-            Object.keys(next).forEach(k => {
-                if (next[k].visible && !next[k].locked && next[k].options.length > 0) {
-                    next[k].current = next[k].options[Math.floor(Math.random() * next[k].options.length)];
-                }
-            });
-            return next;
-        });
-        setIsFlashing(true);
-        setTimeout(() => setIsFlashing(false), 150);
-    };
-
-    const addSection = () => {
-        const id = 's' + Date.now();
-        const newSection = { name: 'New Section', options: ['Option 1'], visible: true, locked: false, current: 'Option 1', order: Object.keys(sections).length };
-        setSections(p => ({ ...p, [id]: newSection }));
-        setEditingSection(id);
-        setEditForm({ name: newSection.name, options: newSection.options.join(', '), isWide: false });
-    };
-
-    const handleDragStart = (e, key) => { if (!editMode) return; setDraggedKey(key); e.dataTransfer.effectAllowed = "move"; };
-    
-    const handleDrop = (e, targetKey) => {
-        e.preventDefault();
-        if (draggedKey === targetKey) return;
-        setSections(prev => {
-            const entries = Object.entries(prev).sort((a, b) => a[1].order - b[1].order);
-            const keys = entries.map(ent => ent[0]);
-            const fromIndex = keys.indexOf(draggedKey);
-            const toIndex = keys.indexOf(targetKey);
-            const newKeys = [...keys];
-            const [movedKey] = newKeys.splice(fromIndex, 1);
-            newKeys.splice(toIndex, 0, movedKey);
-            const next = { ...prev };
-            newKeys.forEach((key, index) => { next[key].order = index; });
-            return next;
-        });
-    };
-
-    const savePreset = () => {
-        if (!presetName.trim()) return;
-        setPresets(p => ({ ...p, [presetName]: { 
-            sections: JSON.parse(JSON.stringify(sections)), 
-            theme: themeColor,
-            order: Object.keys(p).length // Append to end
-        }}));
-        setPresetName('');
-    };
-
-    const loadPreset = (name) => {
-        if(presets[name]) {
-            setSections(presets[name].sections);
-            setThemeColor(presets[name].theme);
-        }
-    };
-
-    const movePreset = (key, direction) => {
-        setPresets(prev => {
-            const entries = Object.entries(prev).sort((a, b) => a[1].order - b[1].order);
-            const index = entries.findIndex(e => e[0] === key);
-            if (index === -1) return prev;
-            
-            const newEntries = [...entries];
-            if (direction === 'up' && index > 0) {
-                [newEntries[index], newEntries[index - 1]] = [newEntries[index - 1], newEntries[index]];
-            } else if (direction === 'down' && index < newEntries.length - 1) {
-                [newEntries[index], newEntries[index + 1]] = [newEntries[index + 1], newEntries[index]];
-            } else {
-                return prev;
-            }
-
-            const nextPresets = {};
-            newEntries.forEach((([k, v], idx) => {
-                nextPresets[k] = { ...v, order: idx };
-            }));
-            return nextPresets;
-        });
-    };
-
-    const handleExport = () => {
-        const data = { sections, presets, themeColor, exportedAt: new Date().toISOString() };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `jazz-practice-backup.json`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    };
-
-    const handleImport = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (data.sections) setSections(data.sections);
-                if (data.presets) setPresets(data.presets);
-                if (data.themeColor && THEME_COLORS[data.themeColor]) setThemeColor(data.themeColor);
-                setShowPresetModal(false);
-                alert("Backup restored successfully!");
-            } catch (err) { alert("Failed to load file. Invalid JSON."); }
+        // 12 Distinct Muted/Jewel Tones
+        const THEME_COLORS = {
+            garnet:   { bg: 'bg-[#faf5f5]', primary: 'bg-[#8c2f39]', hover: 'hover:bg-[#70242d]', text: 'text-white' },
+            sienna:   { bg: 'bg-[#faf6f3]', primary: 'bg-[#b06d45]', hover: 'hover:bg-[#8f5636]', text: 'text-white' },
+            gold:     { bg: 'bg-[#fcf7f0]', primary: 'bg-[#c19a52]', hover: 'hover:bg-[#a38043]', text: 'text-white' },
+            moss:     { bg: 'bg-[#f6f7f2]', primary: 'bg-[#6d7a4e]', hover: 'hover:bg-[#59633f]', text: 'text-white' },
+            emerald:  { bg: 'bg-[#f0f7f4]', primary: 'bg-[#2d5a45]', hover: 'hover:bg-[#224535]', text: 'text-white' },
+            teal:     { bg: 'bg-[#f0f6f6]', primary: 'bg-[#4d7a7a]', hover: 'hover:bg-[#3e6363]', text: 'text-white' },
+            sapphire: { bg: 'bg-[#f2f4f8]', primary: 'bg-[#3d4c70]', hover: 'hover:bg-[#2f3b57]', text: 'text-white' },
+            slate:    { bg: 'bg-[#f1f5f9]', primary: 'bg-[#4a5d75]', hover: 'hover:bg-[#3a4a5e]', text: 'text-white' },
+            amethyst: { bg: 'bg-[#f6f3f7]', primary: 'bg-[#6b4c70]', hover: 'hover:bg-[#553c59]', text: 'text-white' },
+            plum:     { bg: 'bg-[#f8f4f7]', primary: 'bg-[#7a5c6f]', hover: 'hover:bg-[#634a59]', text: 'text-white' },
+            charcoal: { bg: 'bg-[#f5f5f5]', primary: 'bg-[#2d2d2d]', hover: 'hover:bg-[#1a1a1a]', text: 'text-white' },
+            taupe:    { bg: 'bg-[#f5f4f2]', primary: 'bg-[#8a7e72]', hover: 'hover:bg-[#6e6359]', text: 'text-white' }
         };
-        reader.readAsText(file);
-    };
+        const PracticeSection = ({ sectionKey, section, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing, onDragStart, onDragOver, onDrop }) => {
+            const [isOver, setIsOver] = useState(false);
 
-    const currentTheme = THEME_COLORS[themeColor] || THEME_COLORS.garnet;
-    const sortedPresets = Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
-
-    return (
-        <div className={`min-h-screen ${currentTheme.bg} transition-colors duration-500 pb-24`}>
-            <div className="max-w-2xl mx-auto px-4 pt-8">
-                <div className="mb-2">
-                    <div className="flex justify-between items-end mb-4">
-                        <div>
-                            <h1 className="text-[#37352f] text-2xl font-bold tracking-tight">Jazz Practice</h1>
-                            <p className="text-[#37352f]/40 text-[10px] font-bold uppercase tracking-[0.2em]">Randomizer</p>
-                        </div>
-                        {!editMode && (
-                            <button onClick={toggleFullScreen} className="p-2 text-[#37352f]/30 hover:bg-black/5 rounded-md transition-colors">
-                                {isFullScreen ? <Icons.Minimize size={20}/> : <Icons.Maximize size={20}/>}
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Horizontal Scrollable Presets Strip */}
-                    {!editMode && sortedPresets.length > 0 && (
-                        <div className="mb-3 relative group">
-                            <div className="flex gap-2 overflow-x-auto hide-scrollbar fade-mask-r pb-1">
-                                {sortedPresets.map(([k, v]) => (
-                                    <button 
-                                        key={k} 
-                                        onClick={() => loadPreset(k)}
-                                        className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap transition-all active:scale-95
-                                            ${v.theme === themeColor && JSON.stringify(v.sections) === JSON.stringify(sections)
-                                                ? 'bg-[#37352f] text-white border-[#37352f]' 
-                                                : 'bg-white border-[#e9e9e7] text-[#37352f]/70 hover:border-[#37352f]/30'
-                                            }`}
-                                    >
-                                        {k}
-                                    </button>
-                                ))}
-                                <div className="w-4 flex-shrink-0"></div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <div className="bg-white border border-[#e9e9e7] rounded-lg p-1 flex justify-between items-center shadow-sm mb-6">
+            return (
+                <div 
+                    draggable={editMode}
+                    onDragStart={(e) => onDragStart(e, sectionKey)}
+                    onDragOver={(e) => { e.preventDefault(); if(editMode) setIsOver(true); }}
+                    onDragLeave={() => setIsOver(false)}
+                    onDrop={(e) => { setIsOver(false); onDrop(e, sectionKey); }}
+                    className={`bg-white rounded-lg border transition-all duration-200 notion-card ${isFlashing ? 'ring-2 ring-[#37352f]/20' : 'shadow-sm'} ${section.isWide ? 'col-span-2' : ''} 
+                        ${editMode ? 'cursor-grab active:cursor-grabbing border-dashed' : 'border-[#e9e9e7]'} 
+                        ${isOver ? 'drag-over' : ''}
+                        ${!section.visible && editMode ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}
+                >
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-[#f7f7f5] border-b border-[#e9e9e7] rounded-t-lg">
+                        <h2 className="text-[10px] font-bold text-[#37352f]/40 uppercase tracking-widest">{section.name}</h2>
                         <div className="flex gap-1">
-                            <button onClick={() => setEditMode(!editMode)} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${editMode ? 'bg-[#37352f] text-white' : 'text-[#37352f]/70 hover:bg-[#f7f7f5]'}`}>
-                                <Icons.Settings size={16}/> {editMode ? 'Finish' : 'Edit'}
-                            </button>
-                            {!editMode && (
-                                <button onClick={() => setShowPresetModal(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-[#37352f]/70 hover:bg-[#f7f7f5]">
-                                    <Icons.Bookmark size={16}/> Presets
-                                </button>
-                            )}
-                            {editMode && (
-                                <button onClick={addSection} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-[#37352f]/70 hover:bg-[#f7f7f5]">
-                                    <Icons.Plus size={16}/> Add Section
-                                </button>
-                            )}
-                        </div>
-                        {isFullScreen && (
-                            <span className="px-3 py-1.5 text-[10px] font-bold text-[#37352f]/20 tracking-widest">FULLSCREEN MODE</span>
-                        )}
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(sections)
-                        .sort((a, b) => a[1].order - b[1].order)
-                        .filter(([_, s]) => s.visible || editMode)
-                        .map(([k, s]) => (
-                            <PracticeSection 
-                                key={k} sectionKey={k} section={s} editMode={editMode}
-                                onToggleVisibility={(id) => setSections(p => ({...p, [id]: {...p[id], visible: !p[id].visible}}))}
-                                onToggleLock={(id) => setSections(p => ({...p, [id]: {...p[id], locked: !p[id].locked}}))}
-                                onEdit={(id) => { setEditingSection(id); setEditForm({ name: s.name, options: s.options.join(', '), isWide: !!s.isWide }); }}
-                                onDelete={(id) => {
-                                    if (window.confirm("Are you sure you want to delete this section? This cannot be undone.")) {
-                                        setSections(p => { const n = {...p}; delete n[id]; return n; });
-                                    }
-                                }}
-                                isFlashing={isFlashing}
-                                onDragStart={handleDragStart} onDrop={handleDrop}
-                            />
-                    ))}
-                </div>
-
-                {!editMode && (
-                    <div className="fixed bottom-8 left-0 right-0 px-4">
-                        <button onClick={randomize} className={`max-w-2xl mx-auto w-full py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] ${currentTheme.primary} ${currentTheme.text} ${currentTheme.hover}`}>
-                            <Icons.Shuffle size={20}/>
-                            <span className="font-bold tracking-widest text-sm uppercase">Randomize</span>
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {showPresetModal && (
-                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                        <h3 className="text-lg font-bold text-[#37352f] mb-4">Practice Presets</h3>
-                        
-                        {/* Save New Preset */}
-                        <div className="mb-6">
-                            <input placeholder="New preset name..." className="w-full bg-[#f7f7f5] border border-[#e9e9e7] p-3 rounded-lg mb-3 focus:outline-none focus:ring-1 focus:ring-[#37352f]/20" value={presetName} onChange={e => setPresetName(e.target.value)} />
-                            <div className="grid grid-cols-6 gap-2 mb-3">
-                                {Object.entries(THEME_COLORS).map(([k, v]) => (
-                                    <button key={k} onClick={() => setThemeColor(k)} title={k} className={`h-8 rounded-md ${v.primary} ${themeColor === k ? 'ring-2 ring-offset-2 ring-[#37352f]' : 'opacity-80 hover:opacity-100'}`} />
-                                ))}
-                            </div>
-                            <button onClick={savePreset} disabled={!presetName.trim()} className="w-full bg-[#37352f] text-white py-2 rounded-lg font-bold hover:bg-[#201f1c] disabled:opacity-50 transition-colors text-sm">Save Current Setup</button>
-                        </div>
-                        
-                        {/* Preset List with Reordering */}
-                        <div className="space-y-2 mb-6 max-h-48 overflow-y-auto pr-2">
-                            {sortedPresets.length === 0 && <p className="text-center text-[#37352f]/40 text-sm italic">No saved presets</p>}
-                            {sortedPresets.map(([k, v], idx) => (
-                                <div key={k} className="flex justify-between items-center group bg-[#f7f7f5] p-2 rounded-lg">
-                                    <button onClick={() => { loadPreset(k); setShowPresetModal(false); }} className="text-sm font-medium hover:underline text-[#37352f] flex items-center gap-2 flex-grow text-left">
-                                        <span className={`w-3 h-3 rounded-full ${THEME_COLORS[v.theme]?.primary || 'bg-gray-400'}`}></span>
-                                        {k}
+                            {editMode ? (
+                                <React.Fragment>
+                                    <button onClick={() => onToggleVisibility(sectionKey)} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded">
+                                        {section.visible ? <Icons.Eye size={14} /> : <Icons.EyeOff size={14} />}
                                     </button>
-                                    <div className="flex gap-1">
-                                        <button onClick={() => movePreset(k, 'up')} disabled={idx === 0} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
-                                            <Icons.ChevronUp size={14} />
-                                        </button>
-                                        <button onClick={() => movePreset(k, 'down')} disabled={idx === sortedPresets.length - 1} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
-                                            <Icons.ChevronDown size={14} />
-                                        </button>
-                                        <div className="w-px bg-[#e9e9e7] mx-1"></div>
-                                        <button onClick={() => setPresets(p => { const n = {...p}; delete n[k]; return n; })} className="text-red-400 p-1 hover:bg-red-50 rounded"><Icons.Trash2 size={14}/></button>
+                                    <button onClick={() => onEdit(sectionKey)} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded"><Icons.Settings size={14}/></button>
+                                    <button onClick={() => onDelete(sectionKey)} className="p-1 text-red-600/60 hover:bg-red-50 rounded"><Icons.Trash2 size={14} /></button>
+                                </React.Fragment>
+                            ) : (
+                                <React.Fragment>
+                                    <button onClick={() => onToggleLock(sectionKey)} className={`p-1 rounded transition-all ${section.locked ? 'text-[#b35944]' : 'text-[#37352f]/40 hover:bg-black/5'}`}>
+                                        {section.locked ? <Icons.Lock size={14} /> : <Icons.Unlock size={14} />}
+                                    </button>
+                                    <button onClick={() => onToggleVisibility(sectionKey)} className="p-1 text-[#37352f]/40 hover:bg-black/5 rounded"><Icons.EyeOff size={14} /></button>
+                                </React.Fragment>
+                            )}
+                        </div>
+                    </div>
+                    <div className="text-center py-8 min-h-[100px] flex items-center justify-center">
+                        <div className="font-medium text-[#37352f] text-2xl px-4 leading-tight">
+                            {!section.visible && !editMode ? "---" : section.current}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const JazzPracticeApp = () => {
+            const [sections, setSections] = useState(() => {
+                const saved = localStorage.getItem('jazzPracticeSections');
+                return saved ? JSON.parse(saved) : {
+                    's1': { name: 'Key', options: ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'B', 'E', 'A', 'D', 'G'], visible: true, locked: false, current: 'C', order: 0 },
+                    's2': { name: 'Chord', options: ['maj7', 'm7', '7', 'm7b5', 'dim7'], visible: true, locked: false, current: 'maj7', order: 1 }
+                };
+            });
+
+            const [presets, setPresets] = useState(() => {
+                const saved = JSON.parse(localStorage.getItem('jazzPracticePresets')) || {};
+                Object.keys(saved).forEach((k, idx) => {
+                    if (saved[k].order === undefined) saved[k].order = idx;
+                });
+                return saved;
+            });
+            
+            const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'garnet');
+            const [isFullScreen, setIsFullScreen] = useState(false);
+            const [editMode, setEditMode] = useState(false);
+            const [editingSection, setEditingSection] = useState(null);
+            const [editForm, setEditForm] = useState({ name: '', options: '', isWide: false });
+            const [showPresetModal, setShowPresetModal] = useState(false);
+            const [presetName, setPresetName] = useState('');
+            const [isFlashing, setIsFlashing] = useState(false);
+            const [draggedKey, setDraggedKey] = useState(null);
+            const fileInputRef = useRef(null);
+
+            useEffect(() => localStorage.setItem('jazzPracticeSections', JSON.stringify(sections)), [sections]);
+            useEffect(() => localStorage.setItem('jazzPracticePresets', JSON.stringify(presets)), [presets]);
+            useEffect(() => localStorage.setItem('jazzPracticeTheme', themeColor), [themeColor]);
+
+            const toggleFullScreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => console.log(err));
+                    setIsFullScreen(true);
+                } else {
+                    document.exitFullscreen();
+                    setIsFullScreen(false);
+                }
+            };
+
+            const randomize = () => {
+                setSections(prev => {
+                    const next = { ...prev };
+                    Object.keys(next).forEach(k => {
+                        if (next[k].visible && !next[k].locked && next[k].options.length > 0) {
+                            next[k].current = next[k].options[Math.floor(Math.random() * next[k].options.length)];
+                        }
+                    });
+                    return next;
+                });
+                setIsFlashing(true);
+                setTimeout(() => setIsFlashing(false), 150);
+            };
+
+            const addSection = () => {
+                const id = 's' + Date.now();
+                const newSection = { name: 'New Section', options: ['Option 1'], visible: true, locked: false, current: 'Option 1', order: Object.keys(sections).length };
+                setSections(p => ({ ...p, [id]: newSection }));
+                setEditingSection(id);
+                setEditForm({ name: newSection.name, options: newSection.options.join(', '), isWide: false });
+            };
+
+            const handleDragStart = (e, key) => { if (!editMode) return; setDraggedKey(key); e.dataTransfer.effectAllowed = "move"; };
+            
+            const handleDrop = (e, targetKey) => {
+                e.preventDefault();
+                if (draggedKey === targetKey) return;
+                setSections(prev => {
+                    const entries = Object.entries(prev).sort((a, b) => a[1].order - b[1].order);
+                    const keys = entries.map(ent => ent[0]);
+                    const fromIndex = keys.indexOf(draggedKey);
+                    const toIndex = keys.indexOf(targetKey);
+                    const newKeys = [...keys];
+                    const [movedKey] = newKeys.splice(fromIndex, 1);
+                    newKeys.splice(toIndex, 0, movedKey);
+                    const next = { ...prev };
+                    newKeys.forEach((key, index) => { next[key].order = index; });
+                    return next;
+                });
+            };
+
+            const savePreset = () => {
+                if (!presetName.trim()) return;
+                setPresets(p => ({ ...p, [presetName]: { 
+                    sections: JSON.parse(JSON.stringify(sections)), 
+                    theme: themeColor,
+                    order: Object.keys(p).length // Append to end
+                }}));
+                setPresetName('');
+            };
+
+            const loadPreset = (name) => {
+                if(presets[name]) {
+                    setSections(presets[name].sections);
+                    setThemeColor(presets[name].theme);
+                }
+            };
+
+            const movePreset = (key, direction) => {
+                setPresets(prev => {
+                    const entries = Object.entries(prev).sort((a, b) => a[1].order - b[1].order);
+                    const index = entries.findIndex(e => e[0] === key);
+                    if (index === -1) return prev;
+                    
+                    const newEntries = [...entries];
+                    if (direction === 'up' && index > 0) {
+                        [newEntries[index], newEntries[index - 1]] = [newEntries[index - 1], newEntries[index]];
+                    } else if (direction === 'down' && index < newEntries.length - 1) {
+                        [newEntries[index], newEntries[index + 1]] = [newEntries[index + 1], newEntries[index]];
+                    } else {
+                        return prev;
+                    }
+
+                    const nextPresets = {};
+                    newEntries.forEach((([k, v], idx) => {
+                        nextPresets[k] = { ...v, order: idx };
+                    }));
+                    return nextPresets;
+                });
+            };
+
+            const handleExport = () => {
+                const data = { sections, presets, themeColor, exportedAt: new Date().toISOString() };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `jazz-practice-backup.json`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            };
+
+            const handleImport = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.sections) setSections(data.sections);
+                        if (data.presets) setPresets(data.presets);
+                        if (data.themeColor && THEME_COLORS[data.themeColor]) setThemeColor(data.themeColor);
+                        setShowPresetModal(false);
+                        alert("Backup restored successfully!");
+                    } catch (err) { alert("Failed to load file. Invalid JSON."); }
+                };
+                reader.readAsText(file);
+            };
+
+            const currentTheme = THEME_COLORS[themeColor] || THEME_COLORS.garnet;
+            const sortedPresets = Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+
+            return (
+                <div className={`min-h-screen ${currentTheme.bg} transition-colors duration-500 pb-24`}>
+                    <div className="max-w-2xl mx-auto px-4 pt-8">
+                        <div className="mb-2">
+                            <div className="flex justify-between items-end mb-4">
+                                <div>
+                                    <h1 className="text-[#37352f] text-2xl font-bold tracking-tight">Jazz Practice</h1>
+                                    <p className="text-[#37352f]/40 text-[10px] font-bold uppercase tracking-[0.2em]">Randomizer</p>
+                                </div>
+                                {!editMode && (
+                                    <button onClick={toggleFullScreen} className="p-2 text-[#37352f]/30 hover:bg-black/5 rounded-md transition-colors">
+                                        {isFullScreen ? <Icons.Minimize size={20}/> : <Icons.Maximize size={20}/>}
+                                    </button>
+                                )}
+                            </div>
+
+                            {!editMode && sortedPresets.length > 0 && (
+                                <div className="mb-3 relative group">
+                                    <div className="flex gap-2 overflow-x-auto hide-scrollbar fade-mask-r pb-1">
+                                        {sortedPresets.map(([k, v]) => (
+                                            <button 
+                                                key={k} 
+                                                onClick={() => loadPreset(k)}
+                                                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap transition-all active:scale-95
+                                                    ${v.theme === themeColor && JSON.stringify(v.sections) === JSON.stringify(sections)
+                                                        ? 'bg-[#37352f] text-white border-[#37352f]' 
+                                                        : 'bg-white border-[#e9e9e7] text-[#37352f]/70 hover:border-[#37352f]/30'
+                                                    }`}
+                                            >
+                                                {k}
+                                            </button>
+                                        ))}
+                                        <div className="w-4 flex-shrink-0"></div>
                                     </div>
                                 </div>
+                            )}
+                            
+                            <div className="bg-white border border-[#e9e9e7] rounded-lg p-1 flex justify-between items-center shadow-sm mb-6">
+                                <div className="flex gap-1">
+                                    <button onClick={() => setEditMode(!editMode)} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${editMode ? 'bg-[#37352f] text-white' : 'text-[#37352f]/70 hover:bg-[#f7f7f5]'}`}>
+                                        <Icons.Settings size={16}/> {editMode ? 'Finish' : 'Edit'}
+                                    </button>
+                                    {!editMode && (
+                                        <button onClick={() => setShowPresetModal(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-[#37352f]/70 hover:bg-[#f7f7f5]">
+                                            <Icons.Bookmark size={16}/> Presets
+                                        </button>
+                                    )}
+                                    {editMode && (
+                                        <button onClick={addSection} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-[#37352f]/70 hover:bg-[#f7f7f5]">
+                                            <Icons.Plus size={16}/> Add Section
+                                        </button>
+                                    )}
+                                </div>
+                                {isFullScreen && (
+                                    <span className="px-3 py-1.5 text-[10px] font-bold text-[#37352f]/20 tracking-widest">FULLSCREEN MODE</span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            {Object.entries(sections)
+                                .sort((a, b) => a[1].order - b[1].order)
+                                .filter(([_, s]) => s.visible || editMode)
+                                .map(([k, s]) => (
+                                    <PracticeSection 
+                                        key={k} sectionKey={k} section={s} editMode={editMode}
+                                        onToggleVisibility={(id) => setSections(p => ({...p, [id]: {...p[id], visible: !p[id].visible}}))}
+                                        onToggleLock={(id) => setSections(p => ({...p, [id]: {...p[id], locked: !p[id].locked}}))}
+                                        onEdit={(id) => { setEditingSection(id); setEditForm({ name: s.name, options: s.options.join(', '), isWide: !!s.isWide }); }}
+                                        onDelete={(id) => {
+                                            if (window.confirm("Are you sure you want to delete this section? This cannot be undone.")) {
+                                                setSections(p => { const n = {...p}; delete n[id]; return n; });
+                                            }
+                                        }}
+                                        isFlashing={isFlashing}
+                                        onDragStart={handleDragStart} onDrop={handleDrop}
+                                    />
                             ))}
                         </div>
-                        
-                        <div className="h-px bg-[#e9e9e7] my-4"></div>
 
-                        {/* Export / Import Controls */}
-                        <div className="flex gap-2 mb-4">
-                            <button onClick={handleExport} className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#e9e9e7] text-[#37352f] py-2 rounded-lg text-xs font-bold hover:bg-[#f7f7f5]">
-                                <Icons.Download size={14} /> Backup
-                            </button>
-                            <button onClick={() => fileInputRef.current.click()} className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#e9e9e7] text-[#37352f] py-2 rounded-lg text-xs font-bold hover:bg-[#f7f7f5]">
-                                <Icons.Upload size={14} /> Restore
-                            </button>
-                            <input type="file" ref={fileInputRef} onChange={handleImport} accept=".json" className="hidden" />
-                        </div>
-
-                        <button onClick={() => setShowPresetModal(false)} className="w-full bg-[#f7f7f5] text-[#37352f] py-3 rounded-xl font-bold hover:bg-[#efefed]">Close</button>
+                        {!editMode && (
+                            <div className="fixed bottom-8 left-0 right-0 px-4">
+                                <button onClick={randomize} className={`max-w-2xl mx-auto w-full py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] ${currentTheme.primary} ${currentTheme.text} ${currentTheme.hover}`}>
+                                    <Icons.Shuffle size={20}/>
+                                    <span className="font-bold tracking-widest text-sm uppercase">Randomize</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
-                </div>
-            )}
 
-            {editingSection && (
-                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-                        <h3 className="text-lg font-bold mb-4 text-[#37352f]">Section Properties</h3>
-                        <input className="w-full bg-[#f7f7f5] border border-[#e9e9e7] p-3 rounded-lg mb-4 focus:outline-none focus:ring-1 focus:ring-[#37352f]/20" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Section Name" />
-                        <textarea className="w-full bg-[#f7f7f5] border border-[#e9e9e7] p-3 rounded-lg mb-4 h-32 text-sm focus:outline-none focus:ring-1 focus:ring-[#37352f]/20" value={editForm.options} onChange={e => setEditForm({...editForm, options: e.target.value})} placeholder="Options (comma separated)" />
-                        <label className="flex items-center gap-2 mb-6 text-sm font-medium text-[#37352f]/60 cursor-pointer">
-                            <input type="checkbox" className="rounded border-[#e9e9e7] text-[#37352f] focus:ring-[#37352f]/20" checked={editForm.isWide} onChange={e => setEditForm({...editForm, isWide: e.target.checked})} /> Full Width
-                        </label>
-                        <div className="flex gap-2">
-                            <button onClick={() => {
-                                const opts = editForm.options.split(',').map(o => o.trim()).filter(o => o);
-                                setSections(p => ({...p, [editingSection]: {...p[editingSection], name: editForm.name, options: opts, isWide: editForm.isWide, current: opts[0]}}));
-                                setEditingSection(null);
-                            }} className="flex-1 bg-[#37352f] text-white py-3 rounded-xl font-bold hover:bg-[#201f1c]">Update</button>
-                            <button onClick={() => setEditingSection(null)} className="flex-1 bg-[#f7f7f5] text-[#37352f] py-3 rounded-xl font-bold hover:bg-[#efefed]">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<JazzPracticeApp />);
-
-// --- PWA SERVICE WORKER REGISTRATION ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW Success:', reg))
-            .catch(err => console.log('SW Failure:', err));
-    });
-}
-    </script>
-</body>
-</html>
+                    {showPresetModal && (
+                        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                            <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                                <h3 className="text-lg font-bold text-[#37352f] mb-4">Practice Presets</h3>
+                                
+                                <div className="mb-6">
+                                    <input placeholder="New preset name..." className="w-full bg-[#f7f7f5] border border-[#e9e9e7] p-3 rounded-lg mb-3 focus:outline-none focus:ring-1 focus:ring-[#37352f]/20" value={presetName} onChange={e => setPresetName(e.target.value)} />
+                                    <div className="grid grid-cols-6 gap-2 mb-3">
+                                        {Object.entries(THEME_COLORS).map(([k, v]) => (
+                                            <button key={k} onClick={() => setThemeColor(k)} title={k} className={`h-8 rounded-md ${v.primary} ${themeColor === k ? 'ring-2 ring-offset-2 ring-[#37352f]' : 'opacity-80 hover:opacity-100'}`} />
+                                        ))}
+                                    </div>
+                                    <button onClick={savePreset} disabled={!presetName.trim()} className="w-full bg-[#37352f] text-white py-2 rounded-lg font-bold hover:bg-[#201f1c] disabled:opacity-50 transition-colors text-sm">Save Current Setup</button>
+                                </div>
+                                
+                                <div className="space-y-2 mb-6 max-h-48 overflow-y-auto pr-2">
+                                    {sortedPresets.length === 0 && <p className="text-center text-[#37352f]/40 text-sm italic">No saved presets</p>}
+                                    {sortedPresets.map(([k, v], idx) => (
+                                        <div key={k} className="flex justify-between items-center group bg-[#f7f7f5] p-2 rounded-lg">
+                                            <button onClick={() => { loadPreset(k); setShowPresetModal(false); }} className="text-sm font-medium hover:underli
