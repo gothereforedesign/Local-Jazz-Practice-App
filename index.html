@@ -54,7 +54,8 @@
             Download: (p) => <Icon {...p} path='<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' />,
             Upload: (p) => <Icon {...p} path='<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>' />,
             ChevronUp: (p) => <Icon {...p} path='<polyline points="18 15 12 9 6 15"/>' />,
-            ChevronDown: (p) => <Icon {...p} path='<polyline points="6 9 12 15 18 9"/>' />
+            ChevronDown: (p) => <Icon {...p} path='<polyline points="6 9 12 15 18 9"/>' />,
+            RotateCcw: (p) => <Icon {...p} path='<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>' />
         };
 
         const THEME_COLORS = {
@@ -164,6 +165,22 @@
                     Object.keys(next).forEach(k => {
                         if (next[k].visible && !next[k].locked && next[k].options.length > 0) {
                             next[k].current = next[k].options[Math.floor(Math.random() * next[k].options.length)];
+                        }
+                    });
+                    return next;
+                });
+                setIsFlashing(true);
+                setTimeout(() => setIsFlashing(false), 150);
+            };
+
+            // Reset visible, unlocked sections to their first option
+            const resetToDefaults = (e) => {
+                e.stopPropagation();
+                setSections(prev => {
+                    const next = { ...prev };
+                    Object.keys(next).forEach(k => {
+                        if (next[k].visible && !next[k].locked && next[k].options.length > 0) {
+                            next[k].current = next[k].options[0];
                         }
                     });
                     return next;
@@ -365,10 +382,13 @@
                             ))}
                         </div>
 
-                        {/* Floating Randomize Button */}
+                        {/* Floating Randomize Button - Portrait Split */}
                         {!editMode && (
-                            <div className="fixed bottom-8 left-0 right-0 px-4">
-                                <button onClick={randomize} className={`max-w-2xl mx-auto w-full py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] 
+                            <div className="fixed bottom-8 left-4 right-4 max-w-2xl mx-auto flex gap-2">
+                                <button onClick={resetToDefaults} className="bg-white border border-[#e9e9e7] text-[#37352f]/60 hover:text-[#37352f] hover:bg-[#f7f7f5] w-14 rounded-xl flex items-center justify-center shadow-lg transition-all active:scale-95">
+                                    <Icons.RotateCcw size={20} />
+                                </button>
+                                <button onClick={randomize} className={`flex-1 py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] 
                                     ${currentTheme.primary} ${currentTheme.text} ${currentTheme.hover}`}>
                                     <Icons.Shuffle size={20}/>
                                     <span className="font-bold tracking-widest text-sm uppercase">Randomize</span>
@@ -405,10 +425,16 @@
                             {activeSections.length === 0 && <div className="bg-white col-span-full flex items-center justify-center text-[#37352f]/30 italic">No visible sections</div>}
                         </div>
 
-                        <button onClick={randomize} className={`w-[20%] h-full flex flex-col items-center justify-center gap-6 cursor-pointer active:opacity-90 active:scale-[0.99] transition-all
-                            ${currentTheme.primary} ${currentTheme.text} shadow-[-4px_0_20px_rgba(0,0,0,0.1)] z-10`}>
-                            <div className="scale-[2.0]"><Icons.Shuffle size={24}/></div>
-                        </button>
+                        {/* Landscape Sidebar - Split Action */}
+                        <div className="w-[20%] h-full flex flex-col z-10 shadow-[-4px_0_20px_rgba(0,0,0,0.1)]">
+                            <button onClick={randomize} className={`flex-grow w-full flex flex-col items-center justify-center gap-6 cursor-pointer active:opacity-90 active:scale-[0.99] transition-all
+                                ${currentTheme.primary} ${currentTheme.text}`}>
+                                <div className="scale-[2.0]"><Icons.Shuffle size={24}/></div>
+                            </button>
+                            <button onClick={resetToDefaults} className="h-24 w-full bg-[#faf5f5] border-t border-black/5 text-[#37352f]/40 hover:text-[#37352f] hover:bg-[#f0f0f0] flex items-center justify-center transition-colors active:bg-[#e0e0e0]">
+                                <Icons.RotateCcw size={24} />
+                            </button>
+                        </div>
                     </div>
                     {showPresetModal && (
                         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
