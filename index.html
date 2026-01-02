@@ -57,8 +57,7 @@
             ChevronDown: (p) => <Icon {...p} path='<polyline points="6 9 12 15 18 9"/>' />,
             RotateCcw: (p) => <Icon {...p} path='<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>' />
         };
-
-        const THEME_COLORS = {
+               const THEME_COLORS = {
             garnet:   { bg: 'bg-[#faf5f5]', primary: 'bg-[#8c2f39]', hover: 'hover:bg-[#70242d]', text: 'text-white' },
             sienna:   { bg: 'bg-[#faf6f3]', primary: 'bg-[#b06d45]', hover: 'hover:bg-[#8f5636]', text: 'text-white' },
             gold:     { bg: 'bg-[#fcf7f0]', primary: 'bg-[#c19a52]', hover: 'hover:bg-[#a38043]', text: 'text-white' },
@@ -117,6 +116,7 @@
                 </div>
             );
         };
+
         const JazzPracticeApp = () => {
             const [sections, setSections] = useState(() => {
                 const saved = localStorage.getItem('jazzPracticeSections');
@@ -133,8 +133,8 @@
                 });
                 return saved;
             });
-            
-            const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'garnet');
+                        const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'garnet');
+            const [activeCategory, setActiveCategory] = useState('All');
             const [isFullScreen, setIsFullScreen] = useState(false);
             const [editMode, setEditMode] = useState(false);
             const [editingSection, setEditingSection] = useState(null);
@@ -173,7 +173,6 @@
                 setTimeout(() => setIsFlashing(false), 150);
             };
 
-            // Reset visible, unlocked sections to their first option
             const resetToDefaults = (e) => {
                 e.stopPropagation();
                 setSections(prev => {
@@ -221,7 +220,7 @@
                 setPresets(p => ({ ...p, [presetName]: { 
                     sections: JSON.parse(JSON.stringify(sections)), 
                     theme: themeColor,
-                    order: Object.keys(p).length // Append to end
+                    order: Object.keys(p).length
                 }}));
                 setPresetName('');
             };
@@ -282,20 +281,27 @@
                 reader.readAsText(file);
             };
 
-            // Calculate grid logic for Stand Mode
-            const activeSections = Object.entries(sections)
+            // Grid Logic
+                        const activeSections = Object.entries(sections)
                 .sort((a, b) => a[1].order - b[1].order)
                 .filter(([_, s]) => s.visible);
-            
-            // Calculate total "slots" needed (Wide = 2, Normal = 1)
             const totalSlots = activeSections.reduce((acc, [_, s]) => acc + (s.isWide ? 2 : 1), 0);
-            
-            // Determine rows based on slots (assuming 2 columns max)
             const landscapeRows = totalSlots <= 2 ? 1 : 2;
             const landscapeGridClass = `grid-cols-2 grid-rows-${landscapeRows}`;
-
             const currentTheme = THEME_COLORS[themeColor] || THEME_COLORS.garnet;
-            const sortedPresets = Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+
+            // --- SMART TABS LOGIC ---
+            const categories = ['All', ...new Set(Object.keys(presets).map(name => {
+                return name.includes(':') ? name.split(':')[0].trim() : 'General';
+            }))].sort();
+
+            const sortedPresets = Object.entries(presets)
+                .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
+                .filter(([name]) => {
+                    if (activeCategory === 'All') return true;
+                    if (activeCategory === 'General') return !name.includes(':');
+                    return name.startsWith(activeCategory + ':');
+                });
 
             return (
                 <div className={`min-h-screen ${currentTheme.bg} transition-colors duration-500`}>
@@ -315,12 +321,31 @@
                                 )}
                             </div>
 
-                            {/* Presets Strip */}
+                            {/* CATEGORY CHIPS ROW */}
+                            {!editMode && Object.keys(presets).length > 0 && categories.length > 1 && (
+                                <div className="flex gap-2 overflow-x-auto hide-scrollbar fade-mask-r mb-2 pb-1">
+                                    {categories.map(cat => (
+                                        <button 
+                                            key={cat}
+                                            onClick={() => setActiveCategory(cat)}
+                                            className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap
+                                                ${activeCategory === cat ? 'bg-[#37352f] text-white' : 'bg-black/5 text-[#37352f]/60 hover:bg-black/10'}`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                    <div className="w-4 flex-shrink-0"></div>
+                                </div>
+                            )}
+
+                            {/* PRESETS STRIP */}
                             {!editMode && sortedPresets.length > 0 && (
                                 <div className="mb-3 relative group">
                                     <div className="flex gap-2 overflow-x-auto hide-scrollbar fade-mask-r pb-1">
                                         {sortedPresets.map(([k, v]) => {
                                             const isActive = v.theme === themeColor && JSON.stringify(v.sections) === JSON.stringify(sections);
+                                            const displayName = activeCategory !== 'All' && k.includes(':') ? k.split(':')[1].trim() : k;
+                                            
                                             return (
                                                 <button 
                                                     key={k} 
@@ -331,7 +356,7 @@
                                                             : 'bg-white/50 hover:bg-white text-[#37352f]/60 border-transparent'
                                                         }`}
                                                 >
-                                                    {k}
+                                                    {displayName}
                                                 </button>
                                             );
                                         })}
@@ -436,13 +461,17 @@
                             </button>
                         </div>
                     </div>
-                    {showPresetModal && (
+
+                    {/* --- MODALS --- */}
+                                        {showPresetModal && (
                         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
                             <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-sm w-full shadow-2xl overflow-y-auto max-h-[90vh]">
                                 <h3 className="text-lg font-bold text-[#37352f] mb-4">Practice Presets</h3>
                                 
                                 <div className="mb-6">
                                     <input placeholder="New preset name..." className="w-full bg-[#f7f7f5] border border-[#e9e9e7] p-3 rounded-lg mb-3 focus:outline-none focus:ring-1 focus:ring-[#37352f]/20" value={presetName} onChange={e => setPresetName(e.target.value)} />
+                                    <p className="text-[10px] text-[#37352f]/40 mb-3 font-medium">💡 Tip: Use "Category: Name" to group presets (e.g., "Tunes: Blue Bossa")</p>
+                                    
                                     <div className="grid grid-cols-6 gap-2 mb-3">
                                         {Object.entries(THEME_COLORS).map(([k, v]) => (
                                             <button key={k} onClick={() => setThemeColor(k)} title={k} className={`h-8 rounded-md ${v.primary} ${themeColor === k ? 'ring-2 ring-offset-2 ring-[#37352f]' : 'opacity-80 hover:opacity-100'}`} />
@@ -453,7 +482,8 @@
                                 
                                 <div className="space-y-2 mb-6 max-h-48 overflow-y-auto pr-2">
                                     {sortedPresets.length === 0 && <p className="text-center text-[#37352f]/40 text-sm italic">No saved presets</p>}
-                                    {sortedPresets.map(([k, v], idx) => (
+                                    {/* Note: In the modal, we still show all presets for management */}
+                                    {Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0)).map(([k, v], idx) => (
                                         <div key={k} className="flex justify-between items-center group bg-[#f7f7f5] p-2 rounded-lg">
                                             <button onClick={() => { loadPreset(k); setShowPresetModal(false); }} className="text-sm font-medium hover:underline text-[#37352f] flex items-center gap-2 flex-grow text-left">
                                                 <span className={`w-3 h-3 rounded-full ${THEME_COLORS[v.theme]?.primary || 'bg-gray-400'}`}></span>
@@ -463,7 +493,7 @@
                                                 <button onClick={() => movePreset(k, 'up')} disabled={idx === 0} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
                                                     <Icons.ChevronUp size={14} />
                                                 </button>
-                                                <button onClick={() => movePreset(k, 'down')} disabled={idx === sortedPresets.length - 1} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
+                                                <button onClick={() => movePreset(k, 'down')} disabled={idx === Object.keys(presets).length - 1} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
                                                     <Icons.ChevronDown size={14} />
                                                 </button>
                                                 <div className="w-px bg-[#e9e9e7] mx-1"></div>
