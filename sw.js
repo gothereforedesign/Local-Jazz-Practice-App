@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jazz-practice-v5';
+const CACHE_NAME = 'jazz-practice-v8-smart-tabs';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  // Force the waiting service worker to become the active service worker
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
@@ -24,12 +26,16 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('activate', event => {
+  // Tell the active service worker to take control of the page immediately
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      );
-    })
+    Promise.all([
+      clients.claim(),
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.filter(name => name !== CACHE_NAME)
+            .map(name => caches.delete(name))
+        );
+      })
+    ])
   );
 });

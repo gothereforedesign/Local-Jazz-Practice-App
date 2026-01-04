@@ -35,6 +35,7 @@
     <script type="text/babel" data-presets="react,env">
         const { useState, useEffect, useRef } = React;
 
+        // --- ICONS ---
         const Icon = ({ path, size = 18, className = "" }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: path }} />
         );
@@ -55,9 +56,15 @@
             Upload: (p) => <Icon {...p} path='<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>' />,
             ChevronUp: (p) => <Icon {...p} path='<polyline points="18 15 12 9 6 15"/>' />,
             ChevronDown: (p) => <Icon {...p} path='<polyline points="6 9 12 15 18 9"/>' />,
-            RotateCcw: (p) => <Icon {...p} path='<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>' />
+            RotateCcw: (p) => <Icon {...p} path='<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>' />,
+            Play: (p) => <Icon {...p} path='<polygon points="5 3 19 12 5 21 5 3"/>' />,
+            Pause: (p) => <Icon {...p} path='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>' />,
+            Edit: (p) => <Icon {...p} path='<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>' />,
+            Save: (p) => <Icon {...p} path='<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>' />,
+            Refresh: (p) => <Icon {...p} path='<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' />
         };
-               const THEME_COLORS = {
+
+        const THEME_COLORS = {
             garnet:   { bg: 'bg-[#faf5f5]', primary: 'bg-[#8c2f39]', hover: 'hover:bg-[#70242d]', text: 'text-white' },
             sienna:   { bg: 'bg-[#faf6f3]', primary: 'bg-[#b06d45]', hover: 'hover:bg-[#8f5636]', text: 'text-white' },
             gold:     { bg: 'bg-[#fcf7f0]', primary: 'bg-[#c19a52]', hover: 'hover:bg-[#a38043]', text: 'text-white' },
@@ -71,7 +78,6 @@
             charcoal: { bg: 'bg-[#f5f5f5]', primary: 'bg-[#2d2d2d]', hover: 'hover:bg-[#1a1a1a]', text: 'text-white' },
             taupe:    { bg: 'bg-[#f5f4f2]', primary: 'bg-[#8a7e72]', hover: 'hover:bg-[#6e6359]', text: 'text-white' }
         };
-
         const PracticeSection = ({ sectionKey, section, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing, onDragStart, onDragOver, onDrop }) => {
             const [isOver, setIsOver] = useState(false);
 
@@ -117,6 +123,44 @@
             );
         };
 
+        // --- NEW TIMER COMPONENT ---
+        const PracticeTimer = ({ className = "" }) => {
+            const [seconds, setSeconds] = useState(0);
+            const [isRunning, setIsRunning] = useState(false);
+
+            useEffect(() => {
+                let interval;
+                if (isRunning) {
+                    interval = setInterval(() => {
+                        setSeconds(s => (s < 3600 ? s + 1 : s));
+                    }, 1000);
+                } else {
+                    clearInterval(interval);
+                }
+                return () => clearInterval(interval);
+            }, [isRunning]);
+
+            const fmt = (s) => {
+                const m = Math.floor(s / 60);
+                const sec = s % 60;
+                return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+            };
+
+            return (
+                <div className={`flex items-center justify-between px-4 py-2 bg-[#f7f7f5] rounded-lg border border-[#e9e9e7] ${className}`}>
+                    <div className="font-mono text-lg font-bold text-[#37352f] tracking-widest">{fmt(seconds)}</div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setIsRunning(!isRunning)} className={`p-2 rounded-md transition-all ${isRunning ? 'bg-[#37352f] text-white' : 'bg-white border border-[#e9e9e7] text-[#37352f]'}`}>
+                            {isRunning ? <Icons.Pause size={14}/> : <Icons.Play size={14}/>}
+                        </button>
+                        <button onClick={() => { setIsRunning(false); setSeconds(0); }} className="p-2 rounded-md bg-white border border-[#e9e9e7] text-[#37352f] hover:bg-red-50 hover:text-red-500">
+                            <Icons.RotateCcw size={14}/>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
         const JazzPracticeApp = () => {
             const [sections, setSections] = useState(() => {
                 const saved = localStorage.getItem('jazzPracticeSections');
@@ -133,14 +177,19 @@
                 });
                 return saved;
             });
-                        const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'garnet');
+            
+            const [themeColor, setThemeColor] = useState(localStorage.getItem('jazzPracticeTheme') || 'garnet');
             const [activeCategory, setActiveCategory] = useState('All');
             const [isFullScreen, setIsFullScreen] = useState(false);
             const [editMode, setEditMode] = useState(false);
             const [editingSection, setEditingSection] = useState(null);
             const [editForm, setEditForm] = useState({ name: '', options: '', isWide: false });
+            
             const [showPresetModal, setShowPresetModal] = useState(false);
             const [presetName, setPresetName] = useState('');
+            const [editingPresetId, setEditingPresetId] = useState(null);
+            const [editPresetForm, setEditPresetForm] = useState({ name: '', theme: '' });
+
             const [isFlashing, setIsFlashing] = useState(false);
             const [draggedKey, setDraggedKey] = useState(null);
             const fileInputRef = useRef(null);
@@ -225,6 +274,28 @@
                 setPresetName('');
             };
 
+            const updatePresetContent = (key) => {
+                if (window.confirm(`Overwrite "${key}" with current visible sections?`)) {
+                    setPresets(p => ({ ...p, [key]: { ...p[key], sections: JSON.parse(JSON.stringify(sections)) } }));
+                }
+            };
+            
+            const saveEditedPreset = (originalKey) => {
+                if(!editPresetForm.name.trim()) return;
+                setPresets(p => {
+                    const newPresets = {...p};
+                    const data = newPresets[originalKey];
+                    if (originalKey !== editPresetForm.name) {
+                        delete newPresets[originalKey];
+                        newPresets[editPresetForm.name] = { ...data, theme: editPresetForm.theme };
+                    } else {
+                        newPresets[originalKey] = { ...data, theme: editPresetForm.theme };
+                    }
+                    return newPresets;
+                });
+                setEditingPresetId(null);
+            };
+
             const loadPreset = (name) => {
                 if(presets[name]) {
                     setSections(presets[name].sections);
@@ -280,9 +351,8 @@
                 };
                 reader.readAsText(file);
             };
-
             // Grid Logic
-                        const activeSections = Object.entries(sections)
+            const activeSections = Object.entries(sections)
                 .sort((a, b) => a[1].order - b[1].order)
                 .filter(([_, s]) => s.visible);
             const totalSlots = activeSections.reduce((acc, [_, s]) => acc + (s.isWide ? 2 : 1), 0);
@@ -292,14 +362,13 @@
 
             // --- SMART TABS LOGIC ---
             const categories = ['All', ...new Set(Object.keys(presets).map(name => {
-                return name.includes(':') ? name.split(':')[0].trim() : 'General';
-            }))].sort();
+                return name.includes(':') ? name.split(':')[0].trim() : null;
+            }).filter(c => c))].sort();
 
             const sortedPresets = Object.entries(presets)
                 .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
                 .filter(([name]) => {
                     if (activeCategory === 'All') return true;
-                    if (activeCategory === 'General') return !name.includes(':');
                     return name.startsWith(activeCategory + ':');
                 });
 
@@ -386,7 +455,7 @@
                         </div>
 
                         {/* Grid */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4 mb-24">
                             {Object.entries(sections)
                                 .sort((a, b) => a[1].order - b[1].order)
                                 .filter(([_, s]) => s.visible || editMode)
@@ -405,6 +474,12 @@
                                         onDragStart={handleDragStart} onDrop={handleDrop}
                                     />
                             ))}
+                            {/* VERTICAL MODE TIMER - Always last, full width */}
+                                                        {!editMode && (
+                                <div className="col-span-2 mt-4">
+                                    <PracticeTimer />
+                                </div>
+                            )}
                         </div>
 
                         {/* Floating Randomize Button - Portrait Split */}
@@ -450,20 +525,26 @@
                             {activeSections.length === 0 && <div className="bg-white col-span-full flex items-center justify-center text-[#37352f]/30 italic">No visible sections</div>}
                         </div>
 
-                        {/* Landscape Sidebar - Split Action */}
-                        <div className="w-[20%] h-full flex flex-col z-10 shadow-[-4px_0_20px_rgba(0,0,0,0.1)]">
+                        {/* Landscape Sidebar - Split Action with Timer */}
+                        <div className="w-[20%] h-full flex flex-col z-10 shadow-[-4px_0_20px_rgba(0,0,0,0.1)] bg-[#faf5f5]">
                             <button onClick={randomize} className={`flex-grow w-full flex flex-col items-center justify-center gap-6 cursor-pointer active:opacity-90 active:scale-[0.99] transition-all
                                 ${currentTheme.primary} ${currentTheme.text}`}>
                                 <div className="scale-[2.0]"><Icons.Shuffle size={24}/></div>
                             </button>
-                            <button onClick={resetToDefaults} className="h-24 w-full bg-[#faf5f5] border-t border-black/5 text-[#37352f]/40 hover:text-[#37352f] hover:bg-[#f0f0f0] flex items-center justify-center transition-colors active:bg-[#e0e0e0]">
+                            
+                            {/* Integrated Sidebar Timer */}
+                            <div className="py-4 border-t border-black/5 flex flex-col items-center gap-2">
+                                <PracticeTimer className="scale-75 origin-center w-[90%] !p-1" />
+                            </div>
+
+                            <button onClick={resetToDefaults} className="h-16 w-full bg-white border-t border-black/5 text-[#37352f]/40 hover:text-[#37352f] hover:bg-[#f0f0f0] flex items-center justify-center transition-colors active:bg-[#e0e0e0]">
                                 <Icons.RotateCcw size={24} />
                             </button>
                         </div>
                     </div>
 
                     {/* --- MODALS --- */}
-                                        {showPresetModal && (
+                    {showPresetModal && (
                         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
                             <div className="bg-white border border-[#e9e9e7] rounded-2xl p-6 max-w-sm w-full shadow-2xl overflow-y-auto max-h-[90vh]">
                                 <h3 className="text-lg font-bold text-[#37352f] mb-4">Practice Presets</h3>
@@ -482,23 +563,55 @@
                                 
                                 <div className="space-y-2 mb-6 max-h-48 overflow-y-auto pr-2">
                                     {sortedPresets.length === 0 && <p className="text-center text-[#37352f]/40 text-sm italic">No saved presets</p>}
-                                    {/* Note: In the modal, we still show all presets for management */}
+                                    
                                     {Object.entries(presets).sort((a, b) => (a[1].order || 0) - (b[1].order || 0)).map(([k, v], idx) => (
-                                        <div key={k} className="flex justify-between items-center group bg-[#f7f7f5] p-2 rounded-lg">
-                                            <button onClick={() => { loadPreset(k); setShowPresetModal(false); }} className="text-sm font-medium hover:underline text-[#37352f] flex items-center gap-2 flex-grow text-left">
-                                                <span className={`w-3 h-3 rounded-full ${THEME_COLORS[v.theme]?.primary || 'bg-gray-400'}`}></span>
-                                                {k}
-                                            </button>
-                                            <div className="flex gap-1">
-                                                <button onClick={() => movePreset(k, 'up')} disabled={idx === 0} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
-                                                    <Icons.ChevronUp size={14} />
-                                                </button>
-                                                <button onClick={() => movePreset(k, 'down')} disabled={idx === Object.keys(presets).length - 1} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded">
-                                                    <Icons.ChevronDown size={14} />
-                                                </button>
-                                                <div className="w-px bg-[#e9e9e7] mx-1"></div>
-                                                <button onClick={() => setPresets(p => { const n = {...p}; delete n[k]; return n; })} className="text-red-400 p-1 hover:bg-red-50 rounded"><Icons.Trash2 size={14}/></button>
+                                        <div key={k} className="flex flex-col group bg-[#f7f7f5] p-2 rounded-lg gap-2">
+                                            <div className="flex justify-between items-center">
+                                                {editingPresetId === k ? (
+<input 
+                                                        className="flex-grow text-sm font-medium bg-white border border-[#e9e9e7] rounded px-2 py-1 mr-2"
+                                                        value={editPresetForm.name}
+                                                        onChange={e => setEditPresetForm(prev => ({...prev, name: e.target.value}))}
+                                                    />
+                                                ) : (
+                                                    <button onClick={() => { loadPreset(k); setShowPresetModal(false); }} className="text-sm font-medium hover:underline text-[#37352f] flex items-center gap-2 flex-grow text-left">
+                                                        <span className={`w-3 h-3 rounded-full ${THEME_COLORS[v.theme]?.primary || 'bg-gray-400'}`}></span>
+                                                        {k}
+                                                    </button>
+                                                )}
+
+                                                <div className="flex gap-1">
+                                                    {editingPresetId === k ? (
+                                                        <React.Fragment>
+                                                            <button onClick={() => saveEditedPreset(k)} className="p-1 text-green-600 hover:bg-green-50 rounded"><Icons.Save size={14} /></button>
+                                                            <button onClick={() => setEditingPresetId(null)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Icons.Trash2 size={14} /></button>
+                                                        </React.Fragment>
+                                                    ) : (
+                                                        <React.Fragment>
+                                                            <button onClick={() => movePreset(k, 'up')} disabled={idx === 0} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded"><Icons.ChevronUp size={14} /></button>
+                                                            <button onClick={() => movePreset(k, 'down')} disabled={idx === Object.keys(presets).length - 1} className="p-1 text-[#37352f]/40 hover:bg-black/5 hover:text-[#37352f] disabled:opacity-20 rounded"><Icons.ChevronDown size={14} /></button>
+                                                            <div className="w-px bg-[#e9e9e7] mx-1"></div>
+                                                            <button onClick={() => { setEditingPresetId(k); setEditPresetForm({ name: k, theme: v.theme }); }} className="p-1 text-[#37352f]/60 hover:bg-black/5 rounded"><Icons.Edit size={14}/></button>
+                                                            <button onClick={() => setPresets(p => { const n = {...p}; delete n[k]; return n; })} className="text-red-400 p-1 hover:bg-red-50 rounded"><Icons.Trash2 size={14}/></button>
+                                                        </React.Fragment>
+                                                    )}
+                                                </div>
                                             </div>
+                                            
+                                            {/* Extended Edit Controls */}
+                                            {editingPresetId === k && (
+                                                <div className="flex items-center gap-2 pt-2 border-t border-black/5">
+                                                    <div className="flex gap-1">
+                                                        {Object.entries(THEME_COLORS).slice(0, 6).map(([tk, tv]) => (
+                                                            <button key={tk} onClick={() => setEditPresetForm(prev => ({...prev, theme: tk}))} className={`w-4 h-4 rounded-full ${tv.primary} ${editPresetForm.theme === tk ? 'ring-2 ring-offset-1 ring-black' : 'opacity-60'}`} />
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex-grow"></div>
+                                                    <button onClick={() => updatePresetContent(k)} className="text-[10px] flex items-center gap-1 bg-white border border-[#e9e9e7] px-2 py-1 rounded hover:bg-[#faf5f5] text-[#37352f]">
+                                                        <Icons.Refresh size={10} /> Sync Content
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -556,4 +669,4 @@
         }
     </script>
 </body>
-</html>
+</html> 
