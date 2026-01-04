@@ -63,21 +63,22 @@
             Save: (p) => <Icon {...p} path='<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>' />,
             Refresh: (p) => <Icon {...p} path='<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' />
         };
-
+    
         const THEME_COLORS = {
-            garnet:   { bg: 'bg-[#faf5f5]', primary: 'bg-[#8c2f39]', hover: 'hover:bg-[#70242d]', text: 'text-white' },
-            sienna:   { bg: 'bg-[#faf6f3]', primary: 'bg-[#b06d45]', hover: 'hover:bg-[#8f5636]', text: 'text-white' },
-            gold:     { bg: 'bg-[#fcf7f0]', primary: 'bg-[#c19a52]', hover: 'hover:bg-[#a38043]', text: 'text-white' },
-            moss:     { bg: 'bg-[#f6f7f2]', primary: 'bg-[#6d7a4e]', hover: 'hover:bg-[#59633f]', text: 'text-white' },
-            emerald:  { bg: 'bg-[#f0f7f4]', primary: 'bg-[#2d5a45]', hover: 'hover:bg-[#224535]', text: 'text-white' },
-            teal:     { bg: 'bg-[#f0f6f6]', primary: 'bg-[#4d7a7a]', hover: 'hover:bg-[#3e6363]', text: 'text-white' },
-            sapphire: { bg: 'bg-[#f2f4f8]', primary: 'bg-[#3d4c70]', hover: 'hover:bg-[#2f3b57]', text: 'text-white' },
-            slate:    { bg: 'bg-[#f1f5f9]', primary: 'bg-[#4a5d75]', hover: 'hover:bg-[#3a4a5e]', text: 'text-white' },
-            amethyst: { bg: 'bg-[#f6f3f7]', primary: 'bg-[#6b4c70]', hover: 'hover:bg-[#553c59]', text: 'text-white' },
-            plum:     { bg: 'bg-[#f8f4f7]', primary: 'bg-[#7a5c6f]', hover: 'hover:bg-[#634a59]', text: 'text-white' },
-            charcoal: { bg: 'bg-[#f5f5f5]', primary: 'bg-[#2d2d2d]', hover: 'hover:bg-[#1a1a1a]', text: 'text-white' },
-            taupe:    { bg: 'bg-[#f5f4f2]', primary: 'bg-[#8a7e72]', hover: 'hover:bg-[#6e6359]', text: 'text-white' }
+            garnet:   { bg: 'bg-[#fdeded]', primary: 'bg-[#d44c47]', hover: 'hover:bg-[#b53c37]', text: 'text-white' }, // Coral Red
+            sienna:   { bg: 'bg-[#faeBDd]', primary: 'bg-[#d9730d]', hover: 'hover:bg-[#bf6309]', text: 'text-white' }, // Clay Orange
+            gold:     { bg: 'bg-[#fbf3db]', primary: 'bg-[#dfab01]', hover: 'hover:bg-[#c49502]', text: 'text-white' }, // Mustard
+            moss:     { bg: 'bg-[#edf3ec]', primary: 'bg-[#448361]', hover: 'hover:bg-[#366e4f]', text: 'text-white' }, // Sage Green
+            emerald:  { bg: 'bg-[#edeeee]', primary: 'bg-[#2a5e55]', hover: 'hover:bg-[#204a43]', text: 'text-white' }, // Pine Green
+            teal:     { bg: 'bg-[#e6f3f7]', primary: 'bg-[#2d7a9e]', hover: 'hover:bg-[#226382]', text: 'text-white' }, // Ocean Blue
+            sapphire: { bg: 'bg-[#eaf0f5]', primary: 'bg-[#375e8f]', hover: 'hover:bg-[#2c4b73]', text: 'text-white' }, // Denim
+            slate:    { bg: 'bg-[#f1f1ef]', primary: 'bg-[#5a5a5a]', hover: 'hover:bg-[#424242]', text: 'text-white' }, // Graphite
+            amethyst: { bg: 'bg-[#f4f0f7]', primary: 'bg-[#695094]', hover: 'hover:bg-[#533f75]', text: 'text-white' }, // Iris Purple
+            plum:     { bg: 'bg-[#f9eff5]', primary: 'bg-[#c14c8a]', hover: 'hover:bg-[#a13b71]', text: 'text-white' }, // Rose Pink
+            charcoal: { bg: 'bg-[#ebeced]', primary: 'bg-[#2d2d2d]', hover: 'hover:bg-[#1a1a1a]', text: 'text-white' }, // Dark Grey
+            taupe:    { bg: 'bg-[#f4eeee]', primary: 'bg-[#937264]', hover: 'hover:bg-[#785b4f]', text: 'text-white' }  // Bark Brown
         };
+    
         const PracticeSection = ({ sectionKey, section, editMode, onToggleVisibility, onToggleLock, onEdit, onDelete, isFlashing, onDragStart, onDragOver, onDrop }) => {
             const [isOver, setIsOver] = useState(false);
 
